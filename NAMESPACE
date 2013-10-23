@@ -1,0 +1,41 @@
+import("MASS", "Matrix", "igraph")
+
+export("coef.genlasso",
+       "cv.trendfilter",
+       "filebackout",
+       "fusedlasso1d",
+       "fusedlasso2d",
+       "fusedlasso",
+       "genlasso",
+       "getD1d",
+       "getD1dSparse",
+       "getD2d",
+       "getD2dSparse",
+       "getDg",
+       "getDgSparse",
+       "getDtf",
+#       "getDtfPos",
+#       "getDtfPosSparse",
+       "getDtfSparse",
+       "getGraph",
+       "iterate",
+       "plot.cv.trendfilter",
+       "plot.genlasso",
+       "plot.trendfilter",
+       "predict.genlasso",
+       "print.genlasso",
+       "print.summary.genlasso",
+       "softthresh",
+       "summary.genlasso",
+       "trendfilter")
+
+S3method("coef", "genlasso")
+S3method("plot", "cv.trendfilter")
+S3method("plot", "genlasso")
+S3method("plot", "trendfilter")
+S3method("predict", "genlasso")
+S3method("print", "genlasso")
+S3method("print", "summary.genlasso")
+S3method("summary", "genlasso")
+
+useDynLib("genlasso")

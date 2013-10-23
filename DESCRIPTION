@@ -1,0 +1,12 @@
+Package: genlasso
+Type: Package
+Title: Path algorithm for generalized lasso problems
+Version: 1.1-4
+Date: 2013-09-05
+Author: Ryan J. Tibshirani, Taylor B. Arnold
+Maintainer: Taylor Arnold <taylor.b.arnold@gmail.com>
+Description: This package computes the solution path for generalized lasso problems. Important use cases are the fused lasso over an arbitrary graph, and trend fitting of any given polynomial order. Specialized implementations for the latter two subproblems are given to improve stability and speed. 
+License: GPL (>= 2.0)
+Depends: R (>= 2.15), MASS, Matrix (>= 1.0-6), igraph (>= 0.6-2)
+ByteCompile: TRUE
+Packaged: 2013-09-06 01:21:24 UTC; tba3

@@ -1,0 +1,12 @@
+### genlasso: version 1.2
+- Added iterate function
+
+### genlasso: version 1.1
+- Fixed ridge bug in genlasso 
+- Removed option to run trend filtering with arbitrary input positions
+- Fixed df bug in coef.genlasso
+- Fixed indexing bug in cv.trendfilter
+- Fixed dimensions bug in genlasso
+
+### genlasso: version 1.0
+- Off the ground, up and running!
