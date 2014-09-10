@@ -7,11 +7,12 @@
 # column rank predictor matrix. The solution is piecewise constant
 # over the grid.
 
-fusedlasso2d <- function(y, X, dim1, dim2, gamma=0, approx=FALSE, 
-                         maxsteps=2000, minlam=0, tol=1e-11, verbose=FALSE,
-                         fileback=FALSE) {
+fusedlasso2d <- function(y, X, dim1, dim2, gamma=0, approx=FALSE,
+                         maxsteps=2000, minlam=0, rtol=1e-7, btol=1e-7,
+                         eps=1e-4, verbose=FALSE) {
+
   if (missing(y)) stop("y is missing.")
-  if (!is.numeric(y) && !is.matrix(y)) stop("y must be numeric (if X is missing, then y can alternatively be a matrix).")
+  if (!is.numeric(y)) stop("y must be numeric.")
   if (length(y) == 0) stop("There must be at least one data point [must have length(y) > 1].")
   if (missing(X)) X = NULL
   if (missing(dim1) || missing(dim2)) {
@@ -32,13 +33,10 @@ fusedlasso2d <- function(y, X, dim1, dim2, gamma=0, approx=FALSE,
   if (!is.null(X) && ncol(X)!=dim1*dim2) {
     stop("Dimensions don't match [ncol(X) != dim1*dim2].")
   }
-  
-  y = as.numeric(y)
-  D = getD2dSparse(dim1,dim2)
 
-  out = fusedlasso(y,X,D,NULL,gamma,approx,maxsteps,minlam,tol,verbose,fileback)
+  D = getD2dSparse(dim1,dim2)
+  out = fusedlasso(y,X,D,NULL,gamma,approx,maxsteps,minlam,rtol,btol,eps,verbose)
   out$call = match.call()
-  
-  if (fileback==FALSE) return(out)
-  else invisible(out)
+
+  return(out)
 }

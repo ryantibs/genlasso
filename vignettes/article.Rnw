@@ -70,8 +70,8 @@
 \fvset{listparameters={\setlength{\topsep}{0pt}}}
 \renewenvironment{Schunk}{\vspace{\topsep}}{\vspace{\topsep}}
 
-\author{Ryan J. Tibshirani \and Taylor B. Arnold}
-\Plainauthor{Ryan Tibshirani, Taylor Arnold}
+\author{Taylor B. Arnold, Ryan Tibshirani}
+\Plainauthor{Taylor Arnold, Ryan Tibshirani}
 
 \title{Introduction to the \pkg{genlasso} package}
 \Plaintitle{Introduction to the genlasso package}
@@ -91,15 +91,16 @@ are also included to assist in studying the output solution path objects.
 \Keywords{generalized lasso, path algorithm, fused lasso, trend filtering}
 
 \Address{
+  Taylor B. Arnold\\
+  AT\&T Labs Research\\
+  33 Thomas Street\\
+  New York, NY 10007\\
+  Email: \email{taylor@research.att.com}
+
   Ryan Tibshirani\\
   Department of Statistics\\
   Carnegie Mellon University\\
   Email: \email{ryantibs@cmu.edu}\\
-
-  Taylor B. Arnold\\
-  Department of Statistics\\
-  Yale University\\
-  Email: \email{taylor.arnold@yale.edu}
 }
 
 <<initial_settings, echo=FALSE>>=

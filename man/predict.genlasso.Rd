@@ -7,9 +7,8 @@
   This predict method for the genlasso class makes a prediction for the
   fitted values at new predictor measurements. Hence it is really only
   useful when the generalized lasso model has been fit with a
-  non-identity predictor matrix. In the case that the predictor matrix
-  is the identity, it does the same thing as
-  \code{\link{coef.genlasso}}. 
+  nonidentity predictor matrix. In the case that the predictor matrix 
+  is the identity, it does the same thing as \code{\link{coef.genlasso}}. 
 }
 \usage{
 \method{predict}{genlasso}(object, lambda, nlam, df, Xnew, ...)
@@ -47,7 +46,9 @@
     predictions should be made. If missing, it is assumed to be
     the same as the existing predictor measurements in \code{object}.
   }
-  \item{...}{currenly unused.}
+  \item{...}{
+    additional arguments passed to predict.
+  }
 }
 \value{
   Returns a list with the following components:

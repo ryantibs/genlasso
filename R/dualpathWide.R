@@ -11,10 +11,9 @@
 # the open interval to the *right* of the current lambda_k.
 
 dualpathWide <- function(y, D, Q1, Q2, R, approx=FALSE, maxsteps=2000,
-                         minlam=0, tol=1e-11, verbose=FALSE, ..., 
+                         minlam=0, rtol=1e-7, btol=1e-7, verbose=FALSE,
                          object=NULL) {
-
-  # Are we starting a new path?
+  # If we are starting a new path
   if (is.null(object)) {
     m = nrow(D)
     n = ncol(D)
@@ -70,20 +69,24 @@ dualpathWide <- function(y, D, Q1, Q2, R, approx=FALSE, maxsteps=2000,
     # Q1: n x (m-r)
     # Q2: n x r
     # R:  (m-r) x (m-r)
-
   }
 
-  # If iterating already started path
+  # If iterating an already started path
   else { 
-    # Grab variables needed to complete the path
-    dualpathObjs = object$dualpathObjs
+    # Grab variables needed to construct the path
     lambda = NULL
-    for(j in 1:length(object)) assign(names(object)[j], object[[j]])
-    for(j in 1:length(dualpathObjs)) assign(names(dualpathObjs)[j], dualpathObjs[[j]])
+    for (j in 1:length(object)) {
+      if (names(object)[j] != "pathobjs") {
+        assign(names(object)[j], object[[j]])
+      }
+    }
+    for (j in 1:length(object$pathobjs)) {
+      assign(names(object$pathobjs)[j], object$pathobjs[[j]])
+    }
     lams = lambda
   }
   
-  #tryCatch({
+  tryCatch({
     while (k<=maxsteps && lams[k-1]>=minlam) {
       ##########
       # Check if we've reached the end of the buffer
@@ -112,7 +115,7 @@ dualpathWide <- function(y, D, Q1, Q2, R, approx=FALSE, maxsteps=2000,
       
       # If the R factor is degenerate (it has a zero on 
       # the diagonal), then we just re-factor completely
-      if (r<m && min(abs(diag(R)))<tol) {
+      if (r<m && min(abs(diag(R)))<rtol) {
         x = qr(t(rbind(D1,D2)))
         Q = qr.Q(x,complete=FALSE)                    
         Q1 = Q[,Seq(1,m-r),drop=FALSE]                          
@@ -140,6 +143,7 @@ dualpathWide <- function(y, D, Q1, Q2, R, approx=FALSE, maxsteps=2000,
 
         # Make sure none of the hitting times are larger
         # than the current lambda (precision issue)
+        hits[hits>lams[k-1]+btol] = 0
         hits[hits>lams[k-1]] = lams[k-1]
         
         ihit = which.max(hits)
@@ -165,6 +169,7 @@ dualpathWide <- function(y, D, Q1, Q2, R, approx=FALSE, maxsteps=2000,
         
         # Make sure none of the leaving times are larger
         # than the current lambda (precision issue)
+        leaves[leaves>lams[k-1]+btol] = 0
         leaves[leaves>lams[k-1]] = lams[k-1]
         
         ileave = which.max(leaves)
@@ -230,17 +235,21 @@ dualpathWide <- function(y, D, Q1, Q2, R, approx=FALSE, maxsteps=2000,
       # Step counter
       k = k+1
     }
-  #}, error = function(err) {
-  #  err$message = paste(err$message,"\n(Path computation has been terminated;",
-  #    " partial path is being returned.)",sep="")
-  #  warning(err)})
-
+  }, error = function(err) {
+    err$message = paste(err$message,"\n(Path computation has been terminated;",
+      " partial path is being returned.)",sep="")
+    warning(err)})
 
   # Trim
   lams = lams[Seq(1,k-1)]
   h = h[Seq(1,k-1)]
   df = df[Seq(1,k-1),drop=FALSE]
   u = u[,Seq(1,k-1),drop=FALSE]
+
+  # Save needed elements for continuing the path
+  pathobjs = list(type="wide", r=r, B=B, I=I, Q1=Q1, approx=approx,
+    Q2=Q2, k=k, df=df, D1=D1, D2=D2, Ds=Ds, ihit=ihit, m=m, n=n, q=q,
+    h=h, R=R, q0=NA, rtol=rtol, btol=btol, s=s, y=y)
   
   # If we reached the maximum number of steps
   if (k>maxsteps) {
@@ -266,16 +275,8 @@ dualpathWide <- function(y, D, Q1, Q2, R, approx=FALSE, maxsteps=2000,
   if (verbose) cat("\n")
 
   # The parent funtion will return the proper beta, fit, y, bls
-  beta = as.matrix(y - t(D)%*%u)
   colnames(u) = as.character(round(lams,3))
-  colnames(beta) = colnames(u)
-
-  # Save needed elements for continuing the path
-  dualpathObjs = list(dualpathType="wide",r=r, B=B, I=I, Q1=Q1, approx=approx,
-                               Q2=Q2, k=k, df=df, D1=D1, D2=D2, Ds=Ds, ihit=ihit,
-                               m=m, n=n, q=q, h=h, R=R, q0=NA, tol=tol, s=s, y=y,
-                               D=D, u=u, X=NA)
-
-  return(list(lambda=lams,beta=beta,fit=beta,u=u,hit=h,df=df,y=y,
-              completepath=completepath,bls=y,dualpathObjs=dualpathObjs))
+  
+  return(list(lambda=lams,beta=NA,fit=NA,u=u,hit=h,df=df,y=NA,
+              completepath=completepath,bls=NA,pathobjs=pathobjs))
 }

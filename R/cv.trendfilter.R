@@ -1,5 +1,6 @@
-cv.trendfilter <- function(object, k=10, mode=c("lambda", "df"),
-                           approx=FALSE, tol=1e-11, verbose=FALSE) {
+cv.trendfilter <- function(object, k=5, mode=c("lambda", "df"),
+                           approx=FALSE, rtol=1e-7, btol=1e-7,
+                           verbose=FALSE) {
   cl = match.call()
   
   if (all(class(object)!="trendfilter")) {
@@ -8,9 +9,6 @@ cv.trendfilter <- function(object, k=10, mode=c("lambda", "df"),
   if (!is.null(object$X)) {
     stop("Cross-validation for trend filtering can only be performed when X=I, the identity matrix.")
   }
-#  if (!is.null(object$z)) {
-#    stop("Cross-validation for trend filtering can only be performed on a unit spaced grid.")
-#  }
   mode = mode[[1]]
   if (!(mode %in% c("lambda", "df"))) {
     stop("Invalid mode, must be \"lambda\" or \"df\".")
@@ -23,7 +21,9 @@ cv.trendfilter <- function(object, k=10, mode=c("lambda", "df"),
     stop("The number of folds must an integer between 2 and n-2.")
   }
   
-  ord = object$trendorder
+  ord = object$ord
+  pos = object$pos
+  if (is.null(pos)) pos = 1:n
   foldid = c(0,rep(Seq(1,k),n-2)[Seq(1,n-2)],0)
 
   if (mode=="lambda") { 
@@ -36,15 +36,24 @@ cv.trendfilter <- function(object, k=10, mode=c("lambda", "df"),
       otr = which(foldid!=i)
       ntr = length(otr)
       ytr = y[otr]
-      Dtr = getDtfSparse(ntr,ord)
-      outtr = dualpathWideSparse(ytr,Dtr,NULL,approx,Inf,min(lambda)*ntr/n,tol,verbose)
-      b = coef.genlasso(outtr,lambda=lambda*ntr/n)$beta
+      ptr = pos[otr]
+      Dtr = getDtfPosSparse(ntr,ord,ptr)
+      out = dualpathWideSparse(ytr,Dtr,NULL,approx,Inf,min(lambda),rtol,btol,verbose)
+      ## (Have to do this manually now)
+      out$beta = as.matrix(ytr - t(Dtr)%*%out$u)
+      out$fit = out$beta
+      out$y = ytr
+      out$bls = ytr
+      ##
+      b = coef.genlasso(out,lambda=lambda)$beta
       
       ote = which(foldid==i)
       yte = matrix(y[ote],length(ote),length(lambda))
-      pred = (b[which((Seq(1,n)%in%(ote-1))[otr]),] +
-              b[which((Seq(1,n)%in%(ote+1))[otr]),])/2
-      
+      pte = pos[ote]
+      ilo = which((Seq(1,n)%in%(ote-1))[otr])
+      ihi = which((Seq(1,n)%in%(ote+1))[otr])
+      a = (pte - ptr[ilo])/(ptr[ihi]-ptr[ilo])
+      pred = b[ilo,]*(1-a) + b[ihi,]*a
       cvall[i,] = colMeans((yte-pred)^2)
     }
 
@@ -75,15 +84,24 @@ cv.trendfilter <- function(object, k=10, mode=c("lambda", "df"),
       otr = which(foldid!=i)
       ntr = length(otr)
       ytr = y[otr]
-      Dtr = getDtfSparse(ntr,ord)
-      outtr = dualpathWideSparse(ytr,Dtr,NULL,approx,Inf,0,tol,verbose)
-      b = coef.genlasso(outtr,df=df)$beta
+      ptr = pos[otr]
+      Dtr = getDtfPosSparse(ntr,ord,ptr)
+      out = dualpathWideSparse(ytr,Dtr,NULL,approx,Inf,0,rtol,btol,verbose)
+      ## (Have to do this manually now)
+      out$beta = as.matrix(ytr - t(Dtr)%*%out$u)
+      out$fit = out$beta
+      out$y = ytr
+      out$bls = ytr
+      ##
+      b = coef.genlasso(out,df=df)$beta
 
       ote = which(foldid==i)
       yte = matrix(y[ote],length(ote),length(df))
-      pred = (b[which((Seq(1,n)%in%(ote-1))[otr]),] +
-              b[which((Seq(1,n)%in%(ote+1))[otr]),])/2
-
+      pte = pos[ote]
+      ilo = which((Seq(1,n)%in%(ote-1))[otr])
+      ihi = which((Seq(1,n)%in%(ote+1))[otr])
+      a = (pte - ptr[ilo])/(ptr[ihi]-ptr[ilo])
+      pred = b[ilo,]*(1-a) + b[ihi,]*a
       cvall[i,] = colMeans((yte-pred)^2)
     }
 

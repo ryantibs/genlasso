@@ -14,8 +14,7 @@
   to objects of class "trendfilter", and plots trend filtering
   coefficients at a single value of lambda (or multiple 
   values, as specified by the user) as a function of the input positions
-  (which, recall, are assumed to be evenly spaced). 
-%  if not specified).
+  (which, recall, are assumed to be evenly spaced if not specified).
   The function \code{plot.cv.trendfilter} plots the output of
   \code{cv.trendfilter}. 
 }
@@ -52,7 +51,8 @@
   \item{style}{
     for \code{plot.trendfilter},
     a character string, either "trend" or "path". If "trend", then trend
-    filtering coefficients are plotted according to their position. If
+    filtering coefficients are plotted according to their underlying 
+    positions. If
     "path", then a plot of the coordinate paths is produced with the
     function \code{plot.genlasso}. Default is "trend".
   }

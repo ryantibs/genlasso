@@ -15,145 +15,144 @@
 # the open interval to the *right* of the current lambda_k.
 
 dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
-                             minlam=0, tol=1e-11, verbose=FALSE, fileback=FALSE,
-                            object=NULL) {     
+                             minlam=0, rtol=1e-7, btol=1e-7, eps=1e-4,
+                             verbose=FALSE, object=NULL) {
+  # If we are starting a new path
+  if (is.null(object)) {
+    m = nrow(D)
+    p = ncol(D)
+    n = length(y)
+    numedges = m-p
+    numnodes = p
 
-  # Are we starting a new path?
-      if (is.null(object)) {
-      m = nrow(D)
-      p = ncol(D)
-      n = length(y)
-      numedges = m-p
-      numnodes = p
-      
-      # Figure out whether or not we should be filebacking
-      if (fileback!=FALSE) {
-        if (fileback==TRUE) {
-          fileback = paste("dualpathFusedL1X-output-",
-            gsub(".","",format(Sys.time(),"%Y%m%d%H%M%OS2"),fixed=TRUE),
-            ".csv", sep="")
-        }
-        if (!is.character(fileback) || length(fileback)>1) {
-          stop("fileback must be either logical or a character string.")
-        }
-        zz = file(fileback, "w")
-      }
-      
-      # Find the minimum 2-norm solution, using some linear algebra 
-      # tricks and a little bit of graph theory
-      L = abs(crossprod(D0))
-      diag(L) = 0
-      gr = graph.adjacency(L,mode="upper") # Underlying graph
-      cl = clusters(gr)                         
-      q = cl$no                            # Number of clusters
-      i = cl$membership                    # Cluster membership
+    # Modify y,X,n in the case of a ridge penalty, but
+    # keep the originals
+    y0 = y
+    X0 = X
+    if (eps>0) {
+      y = c(y,rep(0,p))
+      X = rbind(X,diag(sqrt(eps),p))
+      n = n+p
+    }
 
-      # First we project y onto the row space of D*X^+
-      xy = t(X)%*%y
-      g = xy
+    # Find the minimum 2-norm solution, using some linear algebra
+    # tricks and a little bit of graph theory
+    L = abs(crossprod(D0))
+    diag(L) = 0
+    gr = graph.adjacency(L,mode="upper") # Underlying graph
+    cl = clusters(gr)
+    q = cl$no                            # Number of clusters
+    i = cl$membership                    # Cluster membership
 
-      # Here we perform our usual fused lasso solve but
-      # with g in place of y
-      x = numeric(p)
-      
-      # For efficiency, don't loop over singletons
-      tab = tabulate(i)
-      oo = which(tab[i]==1)
-      if (length(oo)>0) {
-        x[oo] = g[oo]/(diag(L)[oo])
-      }
-      
-      # Now all groups with at least two elements
-      oi = order(i)
-      cs = cumsum(tab)
-      grps = which(tab>1)
-      for (j in grps) {
-        oo = oi[Seq(cs[j]-tab[j]+1,cs[j])]    
-        Lj = crossprod(Matrix(D[,oo],sparse=TRUE))
-        x[oo] = as.numeric(solve(Lj,g[oo]))
+    # First we project y onto the row space of D*X^+
+    xy = t(X)%*%y
+    g = xy
+
+    # Here we perform our usual fused lasso solve but
+    # with g in place of y
+    x = numeric(p)
+
+    # For efficiency, don't loop over singletons
+    tab = tabulate(i)
+    oo = which(tab[i]==1)
+    if (length(oo)>0) {
+      x[oo] = g[oo]/(diag(L)[oo])
       }
 
-      uhat = as.numeric(D%*%x)     # Dual solution
-      betahat = numeric(p)         # Primal solution
-      ihit = which.max(abs(uhat))  # Hitting coordinate
-      hit = abs(uhat[ihit])        # Critical lambda
-      s = sign(uhat[ihit])         # Sign
+    # Now all groups with at least two elements
+    oi = order(i)
+    cs = cumsum(tab)
+    grps = which(tab>1)
+    for (j in grps) {
+      oo = oi[Seq(cs[j]-tab[j]+1,cs[j])]
+      Lj = crossprod(Matrix(D[,oo],sparse=TRUE))
+      x[oo] = as.numeric(solve(Lj,g[oo]))
+    }
 
-      if (verbose) {
-        cat(sprintf("1. lambda=%.3f, adding coordinate %i, |B|=%i...",
-                    hit,ihit,1))
-      }
+    uhat = as.numeric(D%*%x)     # Dual solution
+    betahat = numeric(p)         # Primal solution
+    ihit = which.max(abs(uhat))  # Hitting coordinate
+    hit = abs(uhat[ihit])        # Critical lambda
+    s = sign(uhat[ihit])         # Sign
 
-      # Now iteratively find the new dual solution, and
-      # the next critical point
-      
-      # Things to keep track of, and return at the end
-      buf = min(maxsteps,1000)
-      lams = numeric(buf)        # Critical lambdas
-      h = logical(buf)           # Hit or leave?
-      df = numeric(buf)          # Degrees of freedom
+    if (verbose) {
+      cat(sprintf("1. lambda=%.3f, adding coordinate %i, |B|=%i...",
+                  hit,ihit,1))
+    }
 
-      lams[1] = hit
-      h[1] = TRUE
-      df[1] = 0
-      
-      # We only record the solutions if there is no
-      # filebacking
-      if (fileback==FALSE) {
-        u = matrix(0,m,buf)      # Dual solutions
-        beta = matrix(0,p,buf)   # Primal solutions
-        u[,1] = uhat
-        beta[,1] = betahat
-      }
-      else {
-        cat(m, p, gamma, file=zz, sep=",") 
-        cat("\n", file=zz, sep="")
-        cat(lams[1], h[1], df[1], uhat, betahat, file=zz, sep=",")
-        cat("\n", file=zz, sep="")
-      }
+    # Now iteratively find the new dual solution, and
+    # the next critical point
 
-      # Special interior set over nodes
-      I0 = rep(TRUE,numnodes)
+    # Things to keep track of, and return at the end
+    buf = min(maxsteps,1000)
+    lams = numeric(buf)        # Critical lambdas
+    h = logical(buf)           # Hit or leave?
+    df = numeric(buf)          # Degrees of freedom
 
-      # Update the graph if we need to, otherwise
-      # update the special interior set
-      if (ihit <= numedges) {
-        ed = which(D[ihit,]!=0)
-        gr[ed[1],ed[2]] = 0             # Delete edge
-        newcl = subcomponent(gr,ed[1])  # New cluster
-        oldcl = which(i==i[ed[1]])      # Old cluster
-        # If these two clusters aren't the same, update
-        # the memberships
-        if (length(newcl)!=length(oldcl) || any(sort(newcl)!=sort(oldcl))) {
-          i[newcl] = q+1
-          q = q+1
-        }
+    lams[1] = hit
+    h[1] = TRUE
+    df[1] = 0
+
+    u = matrix(0,m,buf)      # Dual solutions
+    beta = matrix(0,p,buf)   # Primal solutions
+    u[,1] = uhat
+    beta[,1] = betahat
+
+    # Special interior set over nodes
+    I0 = rep(TRUE,numnodes)
+
+    # Update the graph if we need to, otherwise
+    # update the special interior set
+    if (ihit <= numedges) {
+      ed = which(D[ihit,]!=0)
+      gr[ed[1],ed[2]] = 0             # Delete edge
+      newcl = subcomponent(gr,ed[1])  # New cluster
+      oldcl = which(i==i[ed[1]])      # Old cluster
+      # If these two clusters aren't the same, update
+      # the memberships
+      if (length(newcl)!=length(oldcl) || any(sort(newcl)!=sort(oldcl))) {
+        i[newcl] = q+1
+        q = q+1
       }
-      else {
-        I0[ihit-numedges] = FALSE
-      }
-      
-      # Other things to keep track of, but not return
-      r = 1                      # Size of boundary set
-      B = ihit                   # Boundary set
-      I = Seq(1,m)[-ihit]        # Interior set
-      D1 = D[-ihit,,drop=FALSE]  # Matrix D[I,]
-      D2 = D[ihit,,drop=FALSE]   # Matrix D[B,]
-      k = 2                      # What step are we at?
+    }
+    else {
+      I0[ihit-numedges] = FALSE
+    }
+
+    # Other things to keep track of, but not return
+    r = 1                      # Size of boundary set
+    B = ihit                   # Boundary set
+    I = Seq(1,m)[-ihit]        # Interior set
+    D1 = D[-ihit,,drop=FALSE]  # Matrix D[I,]
+    D2 = D[ihit,,drop=FALSE]   # Matrix D[B,]
+    k = 2                      # What step are we at?
   }
 
   # If iterating already started path
-  else { 
-    # Grab variables needed to complete the path
-    dualpathObjs = object$dualpathObjs
+  else {
+    # Grab variables from outer object
     lambda = NULL
-    for(j in 1:length(object)) assign(names(object)[j], object[[j]])
-    for(j in 1:length(dualpathObjs)) assign(names(dualpathObjs)[j], dualpathObjs[[j]])
+    for (j in 1:length(object)) {
+      if (names(object)[j] != "pathobjs") {
+        assign(names(object)[j], object[[j]])
+      }
+    }
+
+    # Trick: save y,X from outer object
+    y0 = y
+    X0 = X
+
+    # Grab variables from inner object
+    for (j in 1:length(object$pathobjs)) {
+      assign(names(object$pathobjs)[j], object$pathobjs[[j]])
+    }
     lams = lambda
+
+    # In the case of a ridge penalty, modify X
+    if (eps>0) X = rbind(X,diag(sqrt(eps),p))
   }
 
-
-  tryCatch({  
+  tryCatch({
     while (k<=maxsteps && lams[k-1]>=minlam) {
       ##########
       # Check if we've reached the end of the buffer
@@ -162,33 +161,31 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
         lams = c(lams,numeric(buf))
         h = c(h,logical(buf))
         df = c(df,numeric(buf))
-        if (fileback==FALSE) {
-          u = cbind(u,matrix(0,m,buf))
-          beta = cbind(beta,matrix(0,p,buf))
-        }
+        u = cbind(u,matrix(0,m,buf))
+        beta = cbind(beta,matrix(0,p,buf))
       }
-      
+
       ##########
       Ds = as.numeric(t(D2)%*%s)
-      
+
       # Precomputation for the hitting times: first we project
       # y and Ds onto the row space of D1*X^+
-      A = matrix(0,n,q) 
+      A = matrix(0,n,q)
       z = matrix(0,q,2)
       nz = rep(FALSE,q)
-      
+
       # For efficiency, don't loop over singletons
       tab = tabulate(i)
       oo = which(tab[i]==1)
       oo2 = oo[!I0[oo]]
       if (length(oo2)>0) {
         j = i[oo2]
-        A[,j] = X[,oo2,drop=FALSE] 
+        A[,j] = X[,oo2,drop=FALSE]
         z[j,1] = xy[oo2]
         z[j,2] = Ds[oo2]
         nz[j] = TRUE
       }
-      
+
       # Now consider all groups with at least two elements
       grps = which(tab>1)
       for (j in grps) {
@@ -200,22 +197,28 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
           nz[j] = TRUE
         }
       }
-      
+
       nzq = sum(nz)
       e = matrix(0,q,2)
-      if (nzq>0) e[nz,] = solve(crossprod(A[,nz]),z[nz,,drop=FALSE])
+      if (nzq>0) {
+        R = qr.R(qr(A[,nz]))
+        e[nz,] = backsolve(R,forwardsolve(R,z[nz,,drop=FALSE],upper.tri=TRUE,transpose=TRUE))
+        # Note: using a QR here is preferable than simply calling
+        # e[nz,] = solve(crossprod(A[,nz]),z[nz,,drop=FALSE]), for
+        # numerical stablity. Plus, it's not really any slower
+      }
       ea = e[,1]
       eb = e[,2]
       ga = xy-t(X)%*%(A%*%ea)
       gb = Ds-t(X)%*%(A%*%eb)
-      
+
       # If the interior is empty, then nothing will hit
       if (r==m) {
         fa = ea[i]
         fb = eb[i]
         hit = 0
       }
-      
+
       # Otherwise, find the next hitting time
       else {
         # Here we perform our usual fused lasso solve but
@@ -233,13 +236,13 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
           xa[oo1] = ga[oo1]/Ldiag
           xb[oo1] = gb[oo1]/Ldiag
         }
-        
+
         # Now all groups with at least two elements
         oi = order(i)
         cs = cumsum(tab)
         grps = which(tab>1)
         for (j in grps) {
-          oo = oi[Seq(cs[j]-tab[j]+1,cs[j])]    
+          oo = oi[Seq(cs[j]-tab[j]+1,cs[j])]
           fa[oo] = ea[j]/length(oo)
           fb[oo] = eb[j]/length(oo)
           gaj = ga[oo]
@@ -256,7 +259,7 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
             xb[oo][-1] = as.numeric(solve(Lj,(gbj-mean(gbj))[-1]))
           }
         }
-        
+
         a = as.numeric(D1%*%xa)
         b = as.numeric(D1%*%xb)
         shits = Sign(a)
@@ -264,13 +267,14 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
 
         # Make sure none of the hitting times are larger
         # than the current lambda (precision issue)
+        hits[hits>lams[k-1]+btol] = 0
         hits[hits>lams[k-1]] = lams[k-1]
-        
+
         ihit = which.max(hits)
         hit = hits[ihit]
         shit = shits[ihit]
       }
-      
+
       ##########
       # If nothing is on the boundary, then nothing will leave
       # Also, skip this if we are in "approx" mode
@@ -289,6 +293,7 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
 
         # Make sure none of the leaving times are larger
         # than the current lambda (precision issue)
+        leaves[leaves>lams[k-1]+btol] = 0
         leaves[leaves>lams[k-1]] = lams[k-1]
 
         ileave = which.max(leaves)
@@ -327,7 +332,7 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
         else {
           I0[I[ihit]-numedges] = FALSE
         }
-        
+
         # Update all other variables
         r = r+1
         B = c(B,I[ihit])
@@ -335,13 +340,13 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
         s = c(s,shit)
         D2 = rBind(D2,D1[ihit,])
         D1 = D1[-ihit,,drop=FALSE]
-          
+
         if (verbose) {
           cat(sprintf("\n%i. lambda=%.3f, adding coordinate %i, |B|=%i...",
                       k,hit,B[r],r))
         }
       }
-                
+
       # Otherwise a leaving time comes next
       else {
         # Record the critical lambda and properties
@@ -352,7 +357,7 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
         uhat[B] = leave*s
         uhat[I] = a-leave*b
         betahat = fa-leave*fb
-              
+
         # Update our graph if we need to, otherwise
         # update the special interior set
         if (B[ileave] <= numedges) {
@@ -373,7 +378,7 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
         else {
           I0[B[ileave]-numedges] = TRUE
         }
-              
+
         # Update all other variables
         r = r-1
         I = c(I,B[ileave])
@@ -388,17 +393,9 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
         }
       }
 
-      # Only record the solutions if we are not
-      # filebacking
-      if (fileback==FALSE) {
-        u[,k] = uhat
-        beta[,k] = betahat
-      }
-      else {
-        cat(lams[k], h[k], df[k], uhat, betahat, file=zz, sep=",")
-        cat("\n", file=zz, sep="")
-      }          
-      
+      u[,k] = uhat
+      beta[,k] = betahat
+
       # Step counter
       k = k+1
     }
@@ -407,14 +404,12 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
       " partial path is being returned.)",sep="")
     warning(err)})
 
-  # Trim 
+  # Trim
   lams = lams[Seq(1,k-1)]
   h = h[Seq(1,k-1)]
   df = df[Seq(1,k-1)]
-  if (fileback==FALSE) {
-    u = u[,Seq(1,k-1),drop=FALSE]
-    beta = beta[,Seq(1,k-1),drop=FALSE]
-  }
+  u = u[,Seq(1,k-1),drop=FALSE]
+  beta = beta[,Seq(1,k-1),drop=FALSE]
 
   # If we reached the maximum number of steps
   if (k>maxsteps) {
@@ -440,27 +435,18 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
   # The least squares solution (lambda=0)
   bls = NULL
   if (completepath) bls = fa
-  
+
   if (verbose) cat("\n")
 
-  if (fileback==FALSE) {
-    dualpathObjs = list(dualpathType="fusedl1x",r=r, B=B, I=I, Q1=NA, approx=approx,
-                                 Q2=NA, k=k, df=df, D1=D1, D2=D2, Ds=Ds, ihit=ihit,
-                                 m=m, n=n, q=q, h=h, q0=NA, tol=tol, s=s, y=y,
-                                 D=D, u=u, X=X, fileback=fileback, L=L, gr=gr,
-                                 cl=cl, i=i, x=x, e=NA, gamma=gamma, I0=I0, numedges=numedges,
-                                 fa=fa, fb=fb, xa=xa, xb=xb, xy=xy)
+  # Save needed elements for continuing the path
+  pathobjs = list(type="fused.l1.x" ,r=r, B=B, I=I, Q1=NA, approx=approx,
+    Q2=NA, k=k, df=df, D1=D1, D2=D2, Ds=Ds, ihit=ihit, m=m, n=n, p=p, q=q,
+    h=h, q0=NA, rtol=rtol, btol=btol, eps=eps, s=s, y=y,
+    gr=gr, i=i, numedges=numedges, I0=I0, xy=xy)
 
-    colnames(u) = as.character(round(lams,3))
-    colnames(beta) = as.character(round(lams,3))
-    return(list(lambda=lams,beta=beta,fit=X%*%beta,u=u,hit=h,df=df,y=y,X=X,
-                completepath=completepath,bls=bls,gamma=gamma,
-                dualpathObjs=dualpathObjs))
-  }
-  else {
-    cat(completepath, is.null(bls), bls, file=zz, sep=",")
-    close(zz)
-    cat("Path object can be read in by calling filebackout on the function output.\n")
-    invisible(list(y=y,X=X,file=fileback))
-  }
+  colnames(u) = as.character(round(lams,3))
+  colnames(beta) = as.character(round(lams,3))
+  return(list(lambda=lams,beta=beta,fit=X0%*%beta,u=u,hit=h,df=df,y=y0,X=X0,
+              completepath=completepath,bls=bls,gamma=gamma,pathobjs=pathobjs))
+
 }

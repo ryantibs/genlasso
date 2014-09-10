@@ -1,5 +1,12 @@
+## genlasso: version 1.3
+- Trend filtering with arbitrary positions and an X matrix
+- Trend filtering, fused lasso with a wide X matrix
+- Internval genlasso SVD implementation
+- Removed filebacking option
+
 ### genlasso: version 1.2
 - Added iterate function
+- Reintroduced option to trend filtering with arbitrary input positions
 
 ### genlasso: version 1.1
 - Fixed ridge bug in genlasso 

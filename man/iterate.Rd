@@ -1,26 +1,28 @@
 \name{iterate}
 \alias{iterate}
 \title{
-    Iterate genlasso object
+    Iterate a genlasso object
 }
 \description{
-    Given an incomplete genlasso path object, this function computes
-    additional values of the path. All options are assumed to be the
-    same as those in the initial call to a genlasso function, with
-    the exception of maxsteps, minlam, and verbose, all of which can
-    be changed with a call to iterate.
+    Given an incomplete \code{genlasso} path object, this function continues 
+    the path computation from the last computed knot, either until 
+    the complete path has been computed or the step limit specified by
+    \code{moresteps} has been reached. All options are assumed
+    to be the same as those in the initial call to a genlasso function (as in
+    \code{\link{genlasso}}, \code{\link{fusedlasso}}, or \code{\link{trendfilter}}), 
+    with the exception of \code{minlam} and \code{verbose}, which can be changed with
+    a call to iterate.
 }
 \usage{
-iterate(object, maxsteps=2000, minlam=0, verbose=FALSE)
+iterate(object, moresteps=200, minlam=0, verbose=FALSE)
 }
 \arguments{
   \item{object}{
-    A genlasso object with an incomplete path.
+    a genlasso object with an incomplete path.
   }
-  \item{maxsteps}{
-    an integer specifying the maximum number of steps for the algorithm
-    to take before termination. This is cumulative, so that steps in the
-    initial path are counted towards the maxsteps number. Default is 2000. 
+  \item{moresteps}{
+    an integer specifying the number of additional steps to take, starting
+    from termination point of the passed (incomplete) path object.
   }
   \item{minlam}{
     a numeric variable indicating the value of lambda at which the path
@@ -32,48 +34,8 @@ iterate(object, maxsteps=2000, minlam=0, verbose=FALSE)
   }
 }
 \value{
-  Returns an object of class "genlasso", a list with at least following
-  components:
-  \item{lambda}{
-    values of lambda at which the solution path changes slope,
-    i.e., kinks or knots.
-  }
-  \item{beta}{
-    a matrix of primal coefficients, each column corresponding to a knot
-    in the solution path.
-  }
-  \item{fit}{
-    a matrix of fitted values, each column corresponding to a knot in
-    the solution path.
-  }
-  \item{u}{
-    a matrix of dual coefficients, each column corresponding to a knot
-    in the solution path.
-  }
-  \item{hit}{
-    a vector of logical values indicating if a new variable in the dual
-    solution hit the box contraint boundary. A value of \code{FALSE}
-    indicates a variable leaving the boundary. 
-  }
-  \item{df}{
-    a vector giving an unbiased estimate of the degrees of freedom of
-    the fit at each knot in the solution path.
-  }
-  \item{y}{
-    the observed response vector. Useful for plotting and other
-    methods.
-  }
-  \item{completepath}{
-    a logical variable indicating whether the complete path was
-    computed (terminating the path early with the \code{maxsteps} or
-    \code{minlam} options results in a value of \code{FALSE}).
-  }
-  \item{bls}{
-    the least squares solution, i.e., the solution at lambda = 0. 
-  }
-  \item{call}{
-    the matched call.
-  }
+  Returns an list of the same class typing and same structure as the passed
+  \code{object}.
 }
 \author{
   Ryan J. Tibshirani and Taylor B. Arnold
@@ -83,48 +45,27 @@ iterate(object, maxsteps=2000, minlam=0, verbose=FALSE)
   generalized lasso", Annals of Statistics 39 (3) 1335--1371.
 }
 \seealso{
-  \code{\link{trendfilter}}, \code{\link{fusedlasso}},
-  \code{\link{genlasso}}
+  \link{genlasso},
+  \link{trendfilter}, \link{fusedlasso}
 }
 \examples{
-   # Wide with an X matrix:
-     library(genlasso)
-     set.seed(1)
-     n = 100
-     p = 35
-     X = matrix(rnorm(n*p),nrow=n)
-     y = 3*X[,1] + rnorm(n)
-     D = diag(1,p)
+  # Sparse 2d fused lasso
+  library(genlasso)
+  set.seed(1)
+  dim1 = dim2 = 10
+  n = 100
+  y = as.numeric(row(diag(dim1)) > 5 & col(diag(dim2)) > 5) * 3 + rnorm(n)
 
-     steps10 = genlasso(y, X=X, D=D, maxsteps=10)
-     steps20 = genlasso(y, X=X, D=D, maxsteps=20)
-     steps30 = genlasso(y, X=X, D=D, maxsteps=30)
-     steps20_iterated = iterate(steps10, maxsteps=20)
-     steps30_iterated = iterate(steps20_iterated, maxsteps=30)
+  a10 = fusedlasso2d(y, dim1=dim1, dim2=dim2, gamma=0.5, maxsteps=10)
+  a20 = fusedlasso2d(y, dim1=dim1, dim2=dim2, gamma=0.5, maxsteps=20)
+  a30 = fusedlasso2d(y, dim1=dim1, dim2=dim2, gamma=0.5, maxsteps=30)
+  b20 = iterate(a10, moresteps=10)
+  b30 = iterate(b20, moresteps=10)
 
-     # Check for equality; should match on all but 'call'
-     steps20$call = steps20_iterated$call
-     steps30$call = steps30_iterated$call
-     all.equal(target=steps20, current=steps20_iterated)
-     all.equal(target=steps30, current=steps30_iterated)
-
-   # Fused w/ L1 penalty:
-     library(genlasso)
-     set.seed(1)
-     n = 100
-     y = as.numeric(row(diag(10)) > 5 & col(diag(10)) > 5) * 3 + rnorm(100)
-     D = getD2dSparse(10, 10)
-
-     steps10 = fusedlasso(y, D=D, maxsteps=10, gamma=0.5)
-     steps20 = fusedlasso(y, D=D, maxsteps=20, gamma=0.5)
-     steps30 = fusedlasso(y, D=D, maxsteps=30, gamma=0.5)
-     steps20_iterated = iterate(steps10, maxsteps=20)
-     steps30_iterated = iterate(steps20_iterated, maxsteps=30)
-
-     # Check for equality; should match on all but 'call'
-     steps20$call = steps20_iterated$call
-     steps30$call = steps30_iterated$call
-     all.equal(target=steps20, current=steps20_iterated)
-     all.equal(target=steps30, current=steps30_iterated)
+  # Check for equality; should match on all but 'call'
+  b20$call = a20$call
+  b30$call = a30$call
+  all.equal(target=a20, current=b20)
+  all.equal(target=a30, current=b30)
 }
 \keyword{models}

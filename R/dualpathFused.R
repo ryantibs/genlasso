@@ -10,32 +10,19 @@
 # the open interval to the *right* of the current lambda_k.
 
 dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
-                          tol=1e-11, verbose=FALSE, fileback=FALSE,
+                          rtol=1e-7, btol=1e-7, verbose=FALSE,
                           object=NULL) {
-  # Are we starting a new path?
+  # If we are starting a new path
   if (is.null(object)) {
     m = nrow(D)
     n = ncol(D)
 
-    # Figure out whether or not we should be filebacking
-    if (fileback!=FALSE) {
-      if (fileback==TRUE) {
-        fileback = paste("dualpathFused-output-",
-          gsub(".","",format(Sys.time(),"%Y%m%d%H%M%OS2"),fixed=TRUE),
-          ".csv", sep="")
-      }
-      if (!is.character(fileback) || length(fileback)>1) {
-        stop("fileback must be either logical or a character string.")
-      }
-      zz = file(fileback, "w")
-    }
-    
-    # Find the minimum 2-norm solution, using some linear algebra 
+    # Find the minimum 2-norm solution, using some linear algebra
     # tricks and a little bit of graph theory
     L = abs(crossprod(D))
     diag(L) = 0
     gr = graph.adjacency(L,mode="upper") # Underlying graph
-    cl = clusters(gr)                         
+    cl = clusters(gr)
     q = cl$no                            # Number of clusters
     i = cl$membership                    # Cluster membership
     x = f = numeric(n)
@@ -46,7 +33,7 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
     if (length(oo)>0) {
       f[oo] = y[oo]
     }
-    
+
     # Same for groups with two elements (doubletons?)
     oi = order(i)
     oo = which(tab[i][oi]==2)
@@ -56,12 +43,12 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
       ii = oo[Seq(1,length(oo),by=2)]
       x[oi][ii] = y[oi][ii] - mm
     }
-    
+
     # Now all groups with at least three elements
     cs = cumsum(tab)
     grps = which(tab>2)
     for (j in grps) {
-      oo = oi[Seq(cs[j]-tab[j]+1,cs[j])]    
+      oo = oi[Seq(cs[j]-tab[j]+1,cs[j])]
       yj = y[oo]
       f[oo] = mean(yj)
       Lj = crossprod(Matrix(D[,oo[-1]],sparse=TRUE))
@@ -91,21 +78,11 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
     lams[1] = hit
     h[1] = TRUE
     df[1] = q
-    
-    # We only record the solutions if there is no
-    # filebacking
-    if (fileback==FALSE) {
-      u = matrix(0,m,buf)      # Dual solutions
-      beta = matrix(0,n,buf)   # Primal solutions
-      u[,1] = uhat
-      beta[,1] = betahat
-    }
-    else {
-      cat(m, n, 0, file=zz, sep=",")
-      cat("\n", file=zz, sep="")
-      cat(lams[1], h[1], df[1], uhat, betahat, file=zz, sep=",")
-      cat("\n", file=zz, sep="")
-    }
+
+    u = matrix(0,m,buf)      # Dual solutions
+    beta = matrix(0,n,buf)   # Primal solutions
+    u[,1] = uhat
+    beta[,1] = betahat
 
     # Update our graph
     e = which(D[ihit,]!=0)
@@ -118,7 +95,7 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
       i[newcl] = q+1
       q = q+1
     }
-    
+
     # Other things to keep track of
     r = 1                      # Size of boundary set
     B = ihit                   # Boundary set
@@ -128,17 +105,22 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
     k = 2                      # What step are we at?
   }
 
-  # If iterating already started path
-  else { 
-    # Grab variables needed to complete the path
-    dualpathObjs = object$dualpathObjs
+  # If iterating an already started path
+  else {
+    # Grab variables needed to construct the path
     lambda = NULL
-    for(j in 1:length(object)) assign(names(object)[j], object[[j]])
-    for(j in 1:length(dualpathObjs)) assign(names(dualpathObjs)[j], dualpathObjs[[j]])
+    for (j in 1:length(object)) {
+      if (names(object)[j] != "pathobjs") {
+        assign(names(object)[j], object[[j]])
+      }
+    }
+    for (j in 1:length(object$pathobjs)) {
+      assign(names(object$pathobjs)[j], object$pathobjs[[j]])
+    }
     lams = lambda
   }
 
-  tryCatch({    
+  tryCatch({
     while (k<=maxsteps && lams[k-1]>=minlam) {
       ##########
       # Check if we've reached the end of the buffer
@@ -147,22 +129,20 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
         lams = c(lams,numeric(buf))
         h = c(h,logical(buf))
         df = c(df,numeric(buf))
-        if (fileback==FALSE) {
-          u = cbind(u,matrix(0,m,buf))
-          beta = cbind(beta,matrix(0,n,buf))
-        }
+        u = cbind(u,matrix(0,m,buf))
+        beta = cbind(beta,matrix(0,n,buf))
       }
 
       ##########
       Ds = as.numeric(t(D2)%*%s)
-      
+
       # If the interior is empty, then nothing will hit
       if (r==m) {
         fa = y
         fb = Ds
         hit = 0
       }
-      
+
       # Otherwise, find the next hitting time
       else {
         xa = xb = numeric(n)
@@ -175,7 +155,7 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
           fa[oo] = y[oo]
           fb[oo] = Ds[oo]
         }
-        
+
         # Same for groups with two elements (doubletons?)
         oi = order(i)
         oo = which(tab[i][oi]==2)
@@ -188,7 +168,7 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
           xa[oi][ii] = y[oi][ii] - ma
           xb[oi][ii] = Ds[oi][ii] - mb
         }
-        
+
         # Now all groups with at least three elements
         cs = cumsum(tab)
         grps = which(tab>2)
@@ -210,20 +190,21 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
 
         # Make sure none of the hitting times are larger
         # than the current lambda (precision issue)
+        hits[hits>lams[k-1]+btol] = 0
         hits[hits>lams[k-1]] = lams[k-1]
-        
+
         ihit = which.max(hits)
         hit = hits[ihit]
         shit = shits[ihit]
       }
-      
+
       ##########
       # If nothing is on the boundary, then nothing will leave
       # Also, skip this if we are in "approx" mode
       if (r==0 || approx) {
         leave = 0
       }
-      
+
       # Otherwise, find the next leaving time
       else {
         c = as.numeric(s*(D2%*%fa))
@@ -232,9 +213,10 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
 
         # c must be negative
         leaves[c>=0] = 0
-        
+
         # Make sure none of the leaving times are larger
         # than the current lambda (precision issue)
+        leaves[leaves>lams[k-1]+btol] = 0
         leaves[leaves>lams[k-1]] = lams[k-1]
 
         ileave = which.max(leaves)
@@ -254,7 +236,7 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
         uhat = numeric(m)
         uhat[B] = hit*s
         uhat[I] = a-hit*b
-        betahat = fa-hit*fb   
+        betahat = fa-hit*fb
 
         # Update our graph
         e = which(D1[ihit,]!=0)
@@ -267,7 +249,7 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
           i[newcl] = q+1
           q = q+1
         }
-        
+
         # Update all other variables
         r = r+1
         B = c(B,I[ihit])
@@ -275,13 +257,13 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
         s = c(s,shit)
         D2 = rBind(D2,D1[ihit,])
         D1 = D1[-ihit,,drop=FALSE]
-          
+
         if (verbose) {
           cat(sprintf("\n%i. lambda=%.3f, adding coordinate %i, |B|=%i...",
                       k,hit,B[r],r))
         }
       }
-                
+
       # Otherwise a leaving time comes next
       else {
         # Record the critical lambda and properties
@@ -307,7 +289,7 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
           i[i>oldno] = i[i>oldno]-1
           q = q-1
         }
-        
+
         # Update all other variables
         r = r-1
         I = c(I,B[ileave])
@@ -322,17 +304,9 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
         }
       }
 
-      # Only record the solutions if we are not
-      # filebacking
-      if (fileback==FALSE) {
-        u[,k] = uhat
-        beta[,k] = betahat
-      }
-      else {
-        cat(lams[k], h[k], df[k], uhat, betahat, file=zz, sep=",")
-        cat("\n", file=zz, sep="")
-      }      
-      
+      u[,k] = uhat
+      beta[,k] = betahat
+
       # Step counter
       k = k+1
     }
@@ -341,15 +315,13 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
       " partial path is being returned.)",sep="")
     warning(err)})
 
-  # Trim 
+  # Trim
   lams = lams[Seq(1,k-1)]
   h = h[Seq(1,k-1)]
   df = df[Seq(1,k-1)]
-  if (fileback==FALSE) {
-    u = u[,Seq(1,k-1),drop=FALSE]
-    beta = beta[,Seq(1,k-1),drop=FALSE]
-  }
-  
+  u = u[,Seq(1,k-1),drop=FALSE]
+  beta = beta[,Seq(1,k-1),drop=FALSE]
+
   # If we reached the maximum number of steps
   if (k>maxsteps) {
     if (verbose) {
@@ -373,27 +345,18 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
 
   # The least squares solution (lambda=0)
   bls = y
-  
+
   if (verbose) cat("\n")
 
-  if (fileback==FALSE) {
-    # Save needed elements for continuing the path
-    dualpathObjs = list(dualpathType="fused",r=r, B=B, I=I, Q1=NA, approx=approx,
-                                 Q2=NA, k=k, df=df, D1=D1, D2=D2, Ds=Ds, ihit=ihit,
-                                 m=m, n=n, q=q, h=h, q0=NA, tol=tol, s=s, y=y,
-                                 D=D, u=u, X=NA, fileback=fileback, L=L, gr=gr,
-                                 cl=cl, i=i, x=x, e=e)
+  # Save needed elements for continuing the path
+  pathobjs = list(type="fused",r=r, B=B, I=I, Q1=NA, approx=approx,
+    Q2=NA, k=k, df=df, D1=D1, D2=D2, Ds=Ds, ihit=ihit, m=m, n=n, q=q,
+    h=h, q0=NA, rtol=rtol, btol=btol, s=s, y=y,
+    gr=gr, i=i)
 
-    colnames(u) = as.character(round(lams,3))
-    colnames(beta) = as.character(round(lams,3))
-    return(list(lambda=lams,beta=beta,fit=beta,u=u,hit=h,df=df,y=y,
-                completepath=completepath,bls=bls,alpha=0,
-                dualpathObjs=dualpathObjs))
-  }
-  else {
-    cat(completepath, is.null(bls), bls, file=zz, sep=",")
-    close(zz)
-    cat("Path object can be read in by calling filebackout on the function output.\n")
-    invisible(list(y=y,file=fileback))
-  }
+  colnames(u) = as.character(round(lams,3))
+  colnames(beta) = as.character(round(lams,3))
+  return(list(lambda=lams,beta=beta,fit=beta,u=u,hit=h,df=df,y=y,
+              completepath=completepath,bls=bls,pathobjs=pathobjs))
+
 }

@@ -14,7 +14,8 @@
 }
 \usage{
 genlasso(y, X, D, approx = FALSE, maxsteps = 2000, minlam = 0,
-         tol = 1e-11, eps = 1e-8, verbose = FALSE)
+         rtol = 1e-07, btol = 1e-07, eps = 1e-4, verbose = FALSE,
+         svd = FALSE)
 }
 \arguments{
   \item{y}{
@@ -49,21 +50,31 @@ genlasso(y, X, D, approx = FALSE, maxsteps = 2000, minlam = 0,
     a numeric variable indicating the value of lambda at which the path
     should terminate. Default is 0.
   }
-  \item{tol}{
-    a numeric variable giving the tolerance used in the calculation of
+  \item{rtol}{
+    a numeric variable giving the relative tolerance used in the calculation of
     the hitting and leaving times. A larger value is more conservative,
     and may cause the algorithm to miss some hitting or leaving events
     (do not change unless you know what you're getting into!). Default
     is 1e-11. 
   }
+  \item{btol}{
+    similar to \code{rtol} but in absolute terms. If numerical
+    instability is detected, first change rtol; then adjust btol
+    if problems persist.
+  }
   \item{eps}{
     a numeric variable indicating the multiplier for the ridge penalty,
     in the case that \code{X} is column rank deficient. Default is
-    1e-8. 
+    1e-4. 
   }
   \item{verbose}{
     a logical variable indicating if progress should be reported after
     each knot in the path.
+  }
+  \item{svd}{
+    a logical variable indicating if the genlasso package should calculate
+    the singular value decomposition to help in numeric stability of the
+    path calculation.
   }
 }
 \details{

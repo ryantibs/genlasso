@@ -5,7 +5,7 @@
   Package to compute the solution path of generalized lasso problems
 }
 \description{
-  This package is centered around computing the solution path to the
+  This package is centered around computing the solution path of the
   generalized lasso problem, which minimizes the criterion
   \deqn{
     1/2 \|y - X \beta\|_2^2 + \lambda \|D \beta\|_1.
@@ -25,7 +25,7 @@
   matrices X, the solution path is not unique and not computed by this
   package. However, one can add a small ridge penalty to the above
   criterion, which can be re-expressed as a generalized lasso problem
-  with full column rank design matrix X and hence yields a unique
+  with full column rank predictor matrix X and hence yields a unique
   solution path.
 
   Important use cases include the fused lasso, where D is the oriented

@@ -11,11 +11,10 @@
 # the open interval to the *right* of the current lambda_k.
 
 dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
-                         minlam=0, tol=1e-11, verbose=FALSE, ...,
+                         minlam=0, rtol=1e-7, btol=1e-7, verbose=FALSE,
                          object=NULL) {
-
-  # Are we starting a new path?
-  if(is.null(object)) {
+  # If we are starting a new path
+  if (is.null(object)) {
     m = nrow(D)
     n = ncol(D)
 
@@ -76,16 +75,21 @@ dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
     # R:  min(n,m-r) x n
     # Remember that the first q columns of D1 and R
     # are identically zero
+  }
 
-  } else { # If iterating already started path
-
-    # Grab variables needed to complete the path
-    dualpathObjs = object$dualpathObjs
+  # If iterating an already started path
+  else { 
+    # Grab variables needed to construct the path
     lambda = NULL
-    for(j in 1:length(object)) assign(names(object)[j], object[[j]])
-    for(j in 1:length(dualpathObjs)) assign(names(dualpathObjs)[j], dualpathObjs[[j]])
+    for (j in 1:length(object)) {
+      if (names(object)[j] != "pathobjs") {
+        assign(names(object)[j], object[[j]])
+      }
+    }
+    for (j in 1:length(object$pathobjs)) {
+      assign(names(object$pathobjs)[j], object$pathobjs[[j]])
+    }
     lams = lambda
-
   }
 
   tryCatch({  
@@ -141,11 +145,11 @@ dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
           # If R has a zero on the diagonal, then it
           # changed rank
           d = diag(R[Seq(1,n-q),Seq(q+1,n),drop=FALSE])
-          if (min(abs(d))<tol) {
+          if (min(abs(d))<rtol) {
             # Do Givens rotations on the rows and columns
             # of R to make it tridiagonal. We also have to
             # rotate y,D1,D2 and Q1,Q2
-            i = max(which(abs(d)<tol))
+            i = max(which(abs(d)<rtol))
             x = maketri4(y,D1,D2,Q1,Q2,R,q,i)
             y = x$y                   
             D1 = x$D1
@@ -177,7 +181,7 @@ dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
         # If q is zero or the first element on the diagonal
         # of R (after having removed its first q columns) is
         # zero, then it didn't change rank
-        if (q==0 || abs(R[1,q])<tol) {
+        if (q==0 || abs(R[1,q])<rtol) {
           # Do Givens rotations on the rows of R to make it
           # tridiagonal. We also have to rotate Q1,Q2 (and
           # pass y,D1,D2 even though they will not change)
@@ -199,7 +203,7 @@ dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
       
       # If the R factor is degenerate (it has a zero on 
       # the diagonal), then we just re-factor completely
-      if (r<m && min(abs(diag(R[Seq(1,n-q),Seq(q+1,n),drop=FALSE])))<tol) {
+      if (r<m && min(abs(diag(R[Seq(1,n-q),Seq(q+1,n),drop=FALSE])))<rtol) {
         if (verbose) {
           cat("\n(Recomputing QR factorization, for numerical stability...)")
         }
@@ -213,7 +217,7 @@ dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
       }
 
       ##########
-      # (Unlike in dualpathW, we aren't storing this)
+      # (Unlike in dualpathWide, we aren't storing this)
       Ds = t(D2)%*%s
       
       # If the interior is empty, then nothing will hit
@@ -233,6 +237,7 @@ dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
 
         # Make sure none of the hitting times are larger
         # than the current lambda (precision issue)
+        hits[hits>lams[k-1]+btol] = 0
         hits[hits>lams[k-1]] = lams[k-1]
         
         ihit = which.max(hits)
@@ -267,7 +272,7 @@ dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
         
         # Make sure none of the leaving times are larger
         # than the current lambda (precision issue)
-        leaves[leaves>lams[k-1]+tol] = 0 
+        leaves[leaves>lams[k-1]+btol] = 0 
         leaves[leaves>lams[k-1]] = lams[k-1]
         
         ileave = which.max(leaves)
@@ -343,12 +348,9 @@ dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
   u = u[,Seq(1,k-1),drop=FALSE]
 
   # Save needed elements for continuing the path
-  dualpathObjs = list()
-  if(TRUE) {
-      dualpathObjs = list(dualpathType="tall",r=r, B=B, I=I, Q1=Q1, approx=approx,
-                               Q2=Q2, k=k, df=df, D1=D1, D2=D2, ihit=ihit,
-                               m=m, n=n, q=q, h=h, R=R, q0=q0, tol=tol, s=s, X=NA)
-  }
+  pathobjs = list(type="tall", r=r, B=B, I=I, Q1=Q1, approx=approx,
+    Q2=Q2, k=k, df=df, D1=D1, D2=D2, ihit=ihit, m=m, n=n, q=q, h=h,
+    R=R, q0=q0, rtol=rtol, btol=btol, s=s, y=y)
   
   # If we reached the maximum number of steps
   if (k>maxsteps) {
@@ -373,8 +375,9 @@ dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
   
   if (verbose) cat("\n")
 
-  colnames(u) = as.character(round(lams,3))
   # The parent funtion will return the proper beta, fit, y, bls
+  colnames(u) = as.character(round(lams,3))
+  
   return(list(lambda=lams,beta=NA,fit=NA,u=u,hit=h,df=df,y=NA,
-              completepath=completepath,bls=NA,dualpathObjs=dualpathObjs))
+              completepath=completepath,bls=NA,pathobjs=pathobjs))
 }

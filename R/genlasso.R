@@ -8,9 +8,9 @@
 # if not, we regularize by adding a small ridge penalty.
 
 genlasso <- function(y, X, D, approx=FALSE, maxsteps=2000, minlam=0,
-                     tol=1e-11, eps=1e-8, verbose=FALSE) {
-  cl = match.call()
-  
+                     rtol=1e-7, btol=1e-7, eps=1e-4, verbose=FALSE,
+                     svd=FALSE) {
+ 
   if (missing(y)) stop("y is missing.")
   if (!is.numeric(y)) stop("y must be numeric.")
   if (length(y) == 0) stop("There must be at least one data point [must have length(y) > 1].")
@@ -23,12 +23,17 @@ genlasso <- function(y, X, D, approx=FALSE, maxsteps=2000, minlam=0,
   if (is.null(X) && length(y)!=ncol(D)) stop("Dimensions don't match [length(y) != ncol(D)].")
   if (checkrows(D)) stop("D cannot have duplicate rows.")
 
+  # For simplicity
+  y = as.numeric(y)
+  
   # X should be treated as the identity
   if (is.null(X)) {
-    out = dualpath(y,D,approx,maxsteps,minlam,tol,verbose)
-
+    if (!svd) out = dualpath(y,D,approx,maxsteps,minlam,rtol,btol,verbose)
+    else out = dualpathSvd(y,D,approx,maxsteps,minlam,rtol,btol,verbose)
+  }
+  
   # X is given
-  } else {
+  else {
     if (!is.matrix(D)) {
       warning("Converting D to a dense matrix, because X is not the identity.")
       D = as.matrix(D)
@@ -41,38 +46,38 @@ genlasso <- function(y, X, D, approx=FALSE, maxsteps=2000, minlam=0,
 
     ridge = FALSE
     if (p > n) {
+      if (eps<=0) stop("eps must be positive when X has more columns than rows.")
       warning(sprintf("Adding a small ridge penalty (multiplier %g), because X has more columns than rows.",eps))
       ridge = TRUE
     }
     else {
       # Check that X has full column rank
       x = svd(X)
-      if (all(x$d>tol)) {
+      if (all(x$d >= rtol)) {
         y2 = as.numeric(x$u %*% t(x$u) %*% y)
         Xi = x$v %*% (t(x$u) / x$d)
         D2 = D %*% Xi
       }
       else {
+        if (eps<=0) stop("eps must be positive when X is column rank deficient.")
         warning(sprintf("Adding a small ridge penalty (multiplier %g), because X is column rank deficient.",eps))
         ridge = TRUE
       }
     }
     
     if (ridge) {
-      x = svd(rbind(X,sqrt(eps)*diag(1,p)))
+      x = svd(rbind(X,diag(sqrt(eps),p)))
       y2 = as.numeric(x$u %*% t(x$u) %*% c(y,rep(0,p)))
       Xi = x$v %*% (t(x$u) / x$d)
       D2 = D %*% Xi
     }
 
-    out = dualpath(y2,D2,approx,maxsteps,minlam,tol,verbose)
+    if (!svd) out = dualpath(y2,D2,approx,maxsteps,minlam,rtol,btol,verbose)
+    else out = dualpathSvd(y2,D2,approx,maxsteps,minlam,rtol,btol,verbose)
 
-    # Affix constructed values to the output:
-    out$dualpathObjs$X   = X
-    out$dualpathObjs$x   = x
-    out$dualpathObjs$y2  = y2
-    out$dualpathObjs$Xi  = Xi
-    #out$dualpathObjs$D2 = D2
+    # Save these path objects for internal use later
+    out$pathobjs$y2 = y2
+    out$pathobjs$Xi = Xi
 
     # Fix beta, fit, y, bls, and save the X matrix
     out$beta = Xi %*% out$fit
@@ -82,8 +87,7 @@ genlasso <- function(y, X, D, approx=FALSE, maxsteps=2000, minlam=0,
     out$X = X
   }
 
-  out$call = cl
+  out$call = match.call()
   class(out) = c("genlasso", "list")
-
   return(out)
 }

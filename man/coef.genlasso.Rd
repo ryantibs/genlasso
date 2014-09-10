@@ -11,8 +11,7 @@
   value.
 }
 \usage{
-\method{coef}{genlasso}(object, lambda, nlam, df,
-    type = c("primal", "dual", "both"),...) 
+\method{coef}{genlasso}(object, lambda, nlam, df, type = c("primal", "dual", "both"), ...)
 }
 \arguments{
   \item{object}{
@@ -39,8 +38,9 @@
     value appears multiple times throughout the solution path, the least 
     regularized solution (corresponding to the smallest value
     of lambda) is chosen. If a degrees of freedom value does not appear
-    at all in the solution path, the least regularized solution at which
-    this degrees of freedom value is not exceeded is chosen. 
+    at all in the solution path, this function chooses the solution whose 
+    degrees of freedom is largest, subject to being less than or equal to 
+    the specified value.
   }
   \item{type}{
     a character string, one of "primal", "dual", or "both", indicating
@@ -48,7 +48,9 @@
     returned. Default is "primal", which corresponds to the solution of
     the original problem.
   }
-  \item{...}{currenly unused.}
+  \item{...}{
+    additional arguments passed to coef.
+  }
 }
 \value{
   Returns a list with the following components:
@@ -65,9 +67,8 @@
     corresponding to the columns of \code{beta} and \code{u}.
   }
   \item{df}{
-    if \code{df} was specified, an integer vector containing the
-    sequence of degrees of freedom values corresponding to the columns
-    of \code{beta} and \code{u}.
+    an integer vector containing the sequence of degrees of freedom 
+    values corresponding to the columns of \code{beta} and \code{u}. 
   }
 }
 \seealso{

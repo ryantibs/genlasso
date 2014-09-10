@@ -5,7 +5,7 @@ softthresh <- function(object, lambda, gamma) {
   if (!any(class(object)=="fusedlasso") || !is.null(object$X) ||
       (!is.null(object$gamma) && object$gamma!=0)) {
     warning(paste("Soft-thresholding only gives a valid primal solution when applied",
-            "to a fused lasso problem with pure fusion (gamma=0) and identity design matrix X."))
+            "to a fused lasso problem with pure fusion (gamma=0) and identity predictor matrix X."))
   }
 
   # If no lambdas were passed, take the knots in the path

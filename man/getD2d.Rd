@@ -3,12 +3,12 @@
 \alias{getD2dSparse}
 \alias{getDgSparse}
 \alias{getDtfSparse}
-%\alias{getDtfPosSparse}
+\alias{getDtfPosSparse}
 \alias{getD1d}
 \alias{getD2d}
 \alias{getDg}
 \alias{getDtf}
-%\alias{getDtfPos}
+\alias{getDtfPos}
 \alias{getGraph}
 \title{
   Helper functions for constructing generalized lasso penalty matrices 
@@ -34,14 +34,16 @@ getD2dSparse(dim1, dim2)
 getDg(graph)
 getDgSparse(graph)
 getDtf(n, ord)
-getDtfSparse(n, ord) %getDtfPos(n, ord, z) %getDtfPosSparse(n, ord, z)
+getDtfSparse(n, ord) 
+getDtfPos(n, ord, pos)
+getDtfPosSparse(n, ord, pos)
 getGraph(D)
 }
 \arguments{
   The arguments for the sparse variants are identical to those for the
   regular variants, which are described below.
   \item{n}{
-    for \code{getD1d} and \code{getDtf}, % and \code{getDtfPos}, 
+    for \code{getD1d}, \code{getDtf}, and \code{getDtfPos}, 
     the number of points in the 1d sequence.
   }
   \item{dim1, dim2}{
@@ -55,16 +57,15 @@ getGraph(D)
     orientations assigned to each edge).
   }
   \item{ord}{
-    for \code{getDtf}, % and \code{getDtfPos}, 
-    the order of the
+    for \code{getDtf}, and \code{getDtfPos}, the order of the
     polynomial. E.g., ord=0 is the 1d fused lasso and ord=1 is linear 
     trend filtering. Hence the returned matrix is the discrete (ord+1)st
     derivative operator. 
   }
-%  \item{z}{
-%    for \code{getDtfPos}, a numeric vector giving the positions of
-%    points in the 1d sequence. Must have length \code{n}. 
-%  }
+  \item{pos}{
+    for \code{getDtfPos}, a numeric vector giving the positions of
+    points in the 1d sequence. Must have length \code{n}. 
+  }
   \item{D}{
     for \code{getGraph}, a fused lasso penalty matrix, the incidence
     matrix of an undirected graph, with arbitrary edge orientations.

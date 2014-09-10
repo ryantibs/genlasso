@@ -22,8 +22,8 @@ plot.trendfilter <- function(x, style=c("trend", "path"), lambda,
     if (length(co$lambda)==0) stop("Nothing to plot.")
 
     xvals = 1:nrow(co$beta)
-#    if (!is.null(x$z)) xvals = x$z
-#    else xvals = 1:nrow(co$beta)
+    if (!is.null(x$pos)) xvals = x$pos
+    else xvals = 1:nrow(co$beta)
     
     # If there's no X matrix, draw y
     if (is.null(x$X)) {
