@@ -9,3 +9,4 @@ Description: This package computes the solution path for generalized lasso probl
 License: GPL (>= 2.0)
 Depends: Matrix, igraph
 ByteCompile: TRUE
+URL: https://github.com/statsmaths/genlasso
