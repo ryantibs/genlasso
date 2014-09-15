@@ -16,7 +16,7 @@
   (Friedman et al. 2007).
 }
 \usage{
-softthresh(object, lambda, gamma)
+  softthresh(object, lambda, gamma)
 }
 \arguments{
   \item{object}{
@@ -42,8 +42,8 @@ softthresh(object, lambda, gamma)
 }
 \references{
   Friedman J., Hastie T., Hoefling H. and Tibshirani, R. (2007),
-  "Pathwise coordinate optimization", Annals of Applied Statistics 1 (2) 
-  302--332.
+  "Pathwise coordinate optimization", Annals of Applied Statistics 
+  1 (2) 302--332.
 }
 \seealso{
   \code{\link{fusedlasso}}

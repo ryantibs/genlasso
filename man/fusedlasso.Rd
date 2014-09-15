@@ -13,11 +13,14 @@
   functions that construct the penalty matrix over a 1d or 2d grid.}
 \usage{
 fusedlasso(y, X, D, graph, gamma = 0, approx = FALSE, maxsteps = 2000,
-           minlam = 0, rtol = 1e-07, btol = 1e-07, eps = 1e-4, verbose = FALSE)
+           minlam = 0, rtol = 1e-07, btol = 1e-07, eps = 1e-4, 
+	   verbose = FALSE)
 fusedlasso1d(y, pos, X, gamma = 0, approx = FALSE, maxsteps = 2000,
-             minlam = 0, rtol = 1e-07, btol = 1e-07, eps = 1e-4, verbose = FALSE)
+             minlam = 0, rtol = 1e-07, btol = 1e-07, eps = 1e-4, 
+	     verbose = FALSE)
 fusedlasso2d(y, X, dim1, dim2, gamma = 0, approx = FALSE, maxsteps = 2000,
-	     minlam = 0, rtol = 1e-07, btol = 1e-07, eps = 1e-4, verbose = FALSE)
+	     minlam = 0, rtol = 1e-07, btol = 1e-07, eps = 1e-4, 
+	     verbose = FALSE)
 }
 \arguments{
   \item{y}{
@@ -30,16 +33,17 @@ fusedlasso2d(y, X, dim1, dim2, gamma = 0, approx = FALSE, maxsteps = 2000,
   \item{pos}{
     only for \code{fusedlasso1d}, these are the optional positions of
     the positions in the 1d grid. If missing, the 1d grid is assumed to
-    have unit spacing. Note that arbitrary positions \code{pos} cannot be
-    used in the presence of a nonidentity predictor matrix \code{X}.
+    have unit spacing.
   }
   \item{X}{
     an optional matrix of predictor variables, with observations along
-    the rows, and variables along the columns. It is assumed to have
-    full column rank (linear independent predictors), but this is not
-    checked, for efficiency. A rank deficient \code{X} may or may not
-    cause errors, depending on the type of rank deficiency. If missing,
-    \code{X} is assumed to be the identity matrix.
+    the rows, and variables along the columns. If the passed \code{X} 
+    has more columns than rows, then a warning is given, and a small ridge
+    penalty is added to the generalized lasso criterion before the path
+    is computed. If \code{X} has less columns than rows, then its rank is
+    not checked for efficiency, and (unlike the \code{genasso} function) a 
+    ridge penalty is not automatically added if it is rank deficient. 
+    Therefore, a tall, rank deficient \code{X} may cause errors. 
   }
   \item{D}{
     only for \code{fusedlasso}, this is the penalty matrix, i.e., the
@@ -84,21 +88,27 @@ fusedlasso2d(y, X, dim1, dim2, gamma = 0, approx = FALSE, maxsteps = 2000,
     should terminate. Default is 0.
   }
   \item{rtol}{
-    a numeric variable giving the relative tolerance used in the calculation of
-    the hitting and leaving times. A larger value is more conservative,
-    and may cause the algorithm to miss some hitting or leaving events
-    (do not change unless you know what you're getting into!). Default
-    is 1e-7.
+    a numeric variable giving the tolerance for determining the rank of
+    a matrix: if a diagonal value in the R factor of a QR decomposition
+    is less than R, in absolute value, then it is considered zero. Hence
+    making rtol larger means being less stringent with determination of
+    matrix rank. In general, do not change this unless you know what you
+    are getting into! Default is 1e-7.
   }
   \item{btol}{
-    similar to \code{rtol} but in absolute terms. If numerical
-    instability is detected, first change rtol; then adjust btol
-    if problems persist.
+    a numeric variable giving the tolerance for accepting "late" hitting
+    and leaving times: future hitting times and leaving times should always 
+    be less than the current knot in the path, but sometimes for numerical
+    reasons they are larger; any computed hitting or leaving time larger 
+    than the current knot + btol is thrown away. Hence making btol larger
+    means being less stringent withthe determination of hitting and leaving 
+    times. Again, in general, do not change this unless you know what you 
+    are getting into! Default is 1e-7.
   }
   \item{eps}{
     a numeric variable indicating the multiplier for the ridge penalty,
-    in the case that \code{X} is column rank deficient. Default is
-    1e-4.
+    in the case that \code{X} is wide (more columns than rows). If numeric
+    problems occur, make \code{eps} larger. Default is 1e-4. 
   }
   \item{verbose}{
     a logical variable indicating if progress should be reported after
@@ -196,11 +206,14 @@ fusedlasso2d(y, X, dim1, dim2, gamma = 0, approx = FALSE, maxsteps = 2000,
   }
 }
 \author{
-  Ryan J. Tibshirani and Taylor B. Arnold
+  Taylor B. Arnold and Ryan J. Tibshirani
 }
 \references{
   Tibshirani, R. J. and Taylor, J. (2011), "The solution path of the
   generalized lasso", Annals of Statistics 39 (3) 1335--1371.
+
+  Arnold, T. B. and Tibshirani, R. J. (2014), "Efficient implementations
+  of the generalized lasso dual path algorithm", arXiv: 1405.3222.
 
   Tibshirani, R., Saunders, M., Rosset, S., Zhu, J. and Knight,
   K. (2005), "Sparsity and smoothness via the fused lasso", Journal of

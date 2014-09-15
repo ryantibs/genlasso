@@ -10,8 +10,8 @@
     \code{moresteps} has been reached. All options are assumed
     to be the same as those in the initial call to a genlasso function (as in
     \code{\link{genlasso}}, \code{\link{fusedlasso}}, or \code{\link{trendfilter}}), 
-    with the exception of \code{minlam} and \code{verbose}, which can be changed with
-    a call to iterate.
+    with the exception of \code{minlam} and \code{verbose}, which can be changed 
+    with a call to iterate.
 }
 \usage{
 iterate(object, moresteps=200, minlam=0, verbose=FALSE)
@@ -36,13 +36,6 @@ iterate(object, moresteps=200, minlam=0, verbose=FALSE)
 \value{
   Returns an list of the same class typing and same structure as the passed
   \code{object}.
-}
-\author{
-  Ryan J. Tibshirani and Taylor B. Arnold
-}
-\references{
-  Tibshirani, R. J. and Taylor, J. (2011), "The solution path of the
-  generalized lasso", Annals of Statistics 39 (3) 1335--1371.
 }
 \seealso{
   \link{genlasso},

@@ -11,7 +11,8 @@
   value.
 }
 \usage{
-\method{coef}{genlasso}(object, lambda, nlam, df, type = c("primal", "dual", "both"), ...)
+\method{coef}{genlasso}(object, lambda, nlam, df, 
+     type = c("primal", "dual", "both"), ...)
 }
 \arguments{
   \item{object}{

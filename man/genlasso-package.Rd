@@ -46,11 +46,14 @@
   see the generalized lasso paper referenced below. 
 }
 \author{
-Ryan J. Tibshirani and Taylor B. Arnold
+  Taylor B. Arnold and Ryan J. Tibshirani
 }
 \references{
   Tibshirani, R. J. and Taylor, J. (2011), "The solution path of the
   generalized lasso", Annals of Statistics 39 (3) 1335--1371.
+
+  Arnold, T. B. and Tibshirani, R. J. (2014), "Efficient implementations
+  of the generalized lasso dual path algorithm", arXiv: 1405.3222.
 }
 \seealso{
   \code{\link{genlasso}}, \code{\link{fusedlasso}},

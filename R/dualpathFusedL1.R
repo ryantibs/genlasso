@@ -364,18 +364,16 @@ dualpathFusedL1 <- function(y, D, D0, gamma, approx=FALSE, maxsteps=2000,
 
   # The least squares solution (lambda=0)
   bls = y
-
   if (verbose) cat("\n")
 
   # Save needed elements for continuing the path
   pathobjs = list(type="fused.l1",r=r, B=B, I=I, Q1=NA, approx=approx,
     Q2=NA, k=k, df=df, D1=D1, D2=D2, Ds=Ds, ihit=ihit, m=m, n=n, q=q,
-    h=h, q0=NA, rtol=rtol, btol=btol, s=s, y=y,
-    gr=gr, i=i, numedges=numedges, I0=I0)
+    h=h, q0=NA, rtol=rtol, btol=btol, s=s, y=y, gr=gr, i=i,
+    numedges=numedges, I0=I0)
 
   colnames(u) = as.character(round(lams,3))
   colnames(beta) = as.character(round(lams,3))
   return(list(lambda=lams,beta=beta,fit=beta,u=u,hit=h,df=df,y=y,
               completepath=completepath,bls=bls,gamma=gamma,pathobjs=pathobjs))
-
 }
