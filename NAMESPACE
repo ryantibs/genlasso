@@ -1,4 +1,4 @@
-import("Matrix", "igraph")
+import("Matrix", "igraph", "MASS")
 
 export("coef.genlasso",
        "cv.trendfilter",

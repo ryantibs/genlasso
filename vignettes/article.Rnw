@@ -76,16 +76,16 @@
 \title{Introduction to the \pkg{genlasso} package}
 \Plaintitle{Introduction to the genlasso package}
 \Abstract{
-We present a short tutorial and introduction to using the \proglang{R} package 
-\pkg{genlasso}, which is used for computing the solution path of the generalized lasso 
-problem discussed in \cite{genlasso}. Use cases of the generalized lasso include the 
-fused lasso over an arbitrary graph, and trend fitting of any given polynomial 
+We present a short tutorial and introduction to using the \proglang{R} package
+\pkg{genlasso}, which is used for computing the solution path of the generalized lasso
+problem discussed in \cite{genlasso}. Use cases of the generalized lasso include the
+fused lasso over an arbitrary graph, and trend fitting of any given polynomial
 order. Our implementation includes a function to solve the generalized lasso is its most
-general form, as well as special functions to cover the fused lasso and trend filtering 
+general form, as well as special functions to cover the fused lasso and trend filtering
 subproblems. The general implementation maintains and updates a matrix factorization to
 successively solve related linear systems; the specialized implementations forego this
 update routine and exploit subproblem structure, which improves both stability and speed
-of the computation. Standard S3 methods such as \code{plot}, \code{predict}, and \code{coef} 
+of the computation. Standard S3 methods such as \code{plot}, \code{predict}, and \code{coef}
 are also included to assist in studying the output solution path objects.
 }
 \Keywords{generalized lasso, path algorithm, fused lasso, trend filtering}
@@ -123,22 +123,22 @@ algorithm, which computes the solution path to the following optimization proble
 \end{equation}
 where $y\in\R^n$ is a response vector, $X\in\R^{n\times p}$ is a matrix
 of predictor variables, $D\in\R^{m\times p}$ is a penalty matrix, and
-$\lambda \geq 0$ is a regularization parameter. 
-In other words, the path algorithm computes the solution $\hbeta=\hbeta(\lambda)$ 
+$\lambda \geq 0$ is a regularization parameter.
+In other words, the path algorithm computes the solution $\hbeta=\hbeta(\lambda)$
 as a function of the parameter $\lambda$. This is done by solving the equivalent
-Lagrange dual problem, 
+Lagrange dual problem,
 \begin{equation}
 \label{eq:xdual}
 \hu \in \argmin_{u \in \R^m} \, \|XX^+ y - (X^+)\T D\T u\|_\ltwo^2 \;\;
 \text{subject to}\; \|u\|_\linf \leq \lambda,
 \end{equation}
-where $X \in \R^{n\times p}$ is assumed to have full column rank\footnote{If the 
-predictor matrix $X$ does not have full column rank (occurring, say, if $p>n$) 
-then a small ridge penalty can be added to the criterion in \eqref{eq:genlasso}, 
+where $X \in \R^{n\times p}$ is assumed to have full column rank\footnote{If the
+predictor matrix $X$ does not have full column rank (occurring, say, if $p>n$)
+then a small ridge penalty can be added to the criterion in \eqref{eq:genlasso},
 and the problem can be subsequently rewritten as a generalized lasso problem with
 a new full column rank predictor matrix.} and $X^+ = (X\T X)^{-1} X\T$ is the
-Moore-Penrose generalized inverse of $X$. The relationship between the primal and dual 
-solutions is 
+Moore-Penrose generalized inverse of $X$. The relationship between the primal and dual
+solutions is
 \begin{equation}
 \label{eq:xpd}
 \hbeta = (X\T X)^{-1} (X\T y - D\T \hu),
@@ -156,46 +156,46 @@ and
 \label{eq:pd}
 \hbeta = y - D\T \hu.
 \end{equation}
-The dual problem \eqref{eq:dual}, and more generally \eqref{eq:xdual} when $X\not=I$, is 
-``easier'' to consider because loosely speaking the non-differentiable box constraint is free 
+The dual problem \eqref{eq:dual}, and more generally \eqref{eq:xdual} when $X\not=I$, is
+``easier'' to consider because loosely speaking the non-differentiable box constraint is free
 of any linear transformation. Computing the solution path of \eqref{eq:pd} (and of \eqref{eq:xpd})
 essentially reduces to solving several linear systems that differ by one more or one less
-variable. This is much like the lasso solution path. See \cite{genlasso} for details. 
+variable. This is much like the lasso solution path. See \cite{genlasso} for details.
 
-The problem \eqref{eq:genlasso} is solvable at a fixed value of $\lambda$ (or a fixed sequence 
-of $\lambda$ values) by several convex optimization tools, both open source and proprietary. 
-The novelty here is that the solution is computed for all values of the tuning parameter $\lambda$ 
-simultaneously. Perhaps not surprisingly, computation of the full path does not scale as 
-efficiently as does computation at individual $\lambda$ values. The purpose of this package is 
+The problem \eqref{eq:genlasso} is solvable at a fixed value of $\lambda$ (or a fixed sequence
+of $\lambda$ values) by several convex optimization tools, both open source and proprietary.
+The novelty here is that the solution is computed for all values of the tuning parameter $\lambda$
+simultaneously. Perhaps not surprisingly, computation of the full path does not scale as
+efficiently as does computation at individual $\lambda$ values. The purpose of this package is
 not to provide a solver for large scale generalized lasso problems, but instead to deliver the
-entire solution path when computationally amenable. 
+entire solution path when computationally amenable.
 
-There are three main functions: \code{genlasso}, 
+There are three main functions: \code{genlasso},
 \code{fusedlasso}, and \code{trendfilter}. The first function computes the solution path of
 any problem of the general form \eqref{eq:genlasso}; the latter two are specialized functions
-designed to compute the solution path of the fused lasso and trend filtering subproblems, 
-respectively (additionally, wrapper functions \code{fusedlasso1d} and \code{fusedlasso2d} are 
-available to fit the fused lasso over 1d and 2d grids, respectively). 
-These latter functions should be used whenever possible, as they provide a significant 
-improvement in both computational efficiency and numerical stability. 
+designed to compute the solution path of the fused lasso and trend filtering subproblems,
+respectively (additionally, wrapper functions \code{fusedlasso1d} and \code{fusedlasso2d} are
+available to fit the fused lasso over 1d and 2d grids, respectively).
+These latter functions should be used whenever possible, as they provide a significant
+improvement in both computational efficiency and numerical stability.
 
 This vignette is intended to get new users quickly up to speed on using the
 \pkg{genlasso} package for statistical modelling. Sections \ref{sec:lasso}--\ref{sec:tf}
 give short code snippets for common use cases of the package, solving fused lasso problems,
-trend filtering problems, and using cross-validation. 
-In a future paper we will reveal the details of various implementation strategies used in 
-this package, as well as provide empirical results on computationally accuracy and run times 
-of the various strategies, to help assist users in deciding what problems can and cannot be 
-reasonably solved with the path algorithm. 
+trend filtering problems, and using cross-validation.
+We discuss the details of the various implementation strategies used in
+this package, as well as provide empirical results on computationally accuracy and run times
+of the various strategies to help assist users in deciding what problems can and cannot be
+reasonably solved with the path algorithm, in a seperate paper \cite{arnold2014efficient}.
 
-\section{The standard lasso} 
+\section{The standard lasso}
 \label{sec:lasso}
 
-As a first toy example to using the \pkg{genlasso} package, we show how to compute the 
-solution path of the usual lasso optimization problem. (This is intended as an example only, 
+As a first toy example to using the \pkg{genlasso} package, we show how to compute the
+solution path of the usual lasso optimization problem. (This is intended as an example only,
 and we do not recommend this strategy for solving lasso problems!)
 
-We first generate some data, consisting of a predictor matrix $X$ with $10$ variables and 
+We first generate some data, consisting of a predictor matrix $X$ with $10$ variables and
 $100$ observations generated by independent draws from a standard normal distribution.
 The response vector $y$ is made to be a noisy version of the first column of the data
 matrix X:
@@ -217,18 +217,18 @@ Now we can run the path solution for the (generalized) lasso:
 out = genlasso(y, X=X, D=D)
 @
 Like the \code{lm} function in the \pkg{stats} package, the output of the generalized lasso
-has a compact standard plot output. It gives the function call information as well as the 
+has a compact standard plot output. It gives the function call information as well as the
 length of the computed path:
 <<eq1d, echo=TRUE>>=
 out
 @
 More information about each step, including an unbiased estimate of the degrees of freedom
-of the fit and the residual sum of squares, can be obtained by printing the summary of the 
+of the fit and the residual sum of squares, can be obtained by printing the summary of the
 output:
 <<eq1e, echo=TRUE>>=
 summary(out)
 @
-A simple plot of the solution path can be produced by calling the \code{plot} function on 
+A simple plot of the solution path can be produced by calling the \code{plot} function on
 the output object:
 <<eq1f, include=FALSE>>=
 plot(out)
@@ -242,17 +242,17 @@ plot(out)
 \end{center}
 % PLOT END
 Each color shows a coordinate of the solution path over $\lambda$, Note that as
-$\lambda$ increases, all coordinates of the primal solution are quickly shrunken to 
-zero, except the first coordinate, drawn in red. 
+$\lambda$ increases, all coordinates of the primal solution are quickly shrunken to
+zero, except the first coordinate, drawn in red.
 
-Finally, it is easy to extract the coefficients $\beta$ for a particular value (or values) of 
-$\lambda$. Here we calculate the coefficients for the tuning parmeter $\lambda = \sqrt{n\log(p)}$, 
+Finally, it is easy to extract the coefficients $\beta$ for a particular value (or values) of
+$\lambda$. Here we calculate the coefficients for the tuning parmeter $\lambda = \sqrt{n\log(p)}$,
 as is suggested for model selection consistency by recent theory:
 <<eq1g include=FALSE>>=
 coef(out, lambda=sqrt(n*log(p)))
 @
 This is reassuring, as it essentially recovers the true model from which we had simulated
-the data. Also, as expected, the lasso has somewhat underestimated the magnitude of the 
+the data. Also, as expected, the lasso has somewhat underestimated the magnitude of the
 nonzero coefficient due to the shrinking nature of the $\ell_1$ penalty.
 
 \section{The fused lasso} \label{fgraph}
@@ -262,7 +262,7 @@ nonzero coefficient due to the shrinking nature of the $\ell_1$ penalty.
 \label{sec:fused1d}
 
 A simple example of a problem which fits naturally into the generalized lasso structure
-is the 1d fused lasso. In the common signal approximator case, $X=I$, we assume that the 
+is the 1d fused lasso. In the common signal approximator case, $X=I$, we assume that the
 observed data $y=(y_1,\ldots y_n) \in \R^n$ is generated from a process whose mean changes
 at only a smaller number of locations, when ordered sequentially from $1$ to $n$. The goal
 is hence to find a piecewise constant vector of coefficients, of course, fitting well to $y$.
@@ -272,15 +272,15 @@ This is done by solving the following minimization problem:
 \hbeta = \argmin_{\beta \in \R^n} \, \half \sum_{i=1}^n (y_i-\beta_i)^2 +
 \lambda \sum_{i=1}^{n-1} |\beta_{i+1}-\beta_i|,
 \end{equation}
-which is a version of \eqref{eq:genlasso} with $D$ equal to the matrix of first 
+which is a version of \eqref{eq:genlasso} with $D$ equal to the matrix of first
 differences:
 \begin{equation}
 \label{eq:d1d}
-D = \left[\begin{array}{rrrrrr} 
+D = \left[\begin{array}{rrrrrr}
 -1 & 1 & 0 & \ldots & 0 & 0 \\
 0 & -1 & 1 & \ldots & 0 & 0 \\
 & & & \ldots & & \\
-0 & 0 & 0 & \ldots & -1 & 1 
+0 & 0 & 0 & \ldots & -1 & 1
 \end{array}\right].
 \end{equation}
 We generate a data set with four change points:
@@ -291,7 +291,7 @@ i = 1:n
 y = (i > 20 & i < 30) + 5*(i > 50 & i < 70) +
   rnorm(n, sd=0.1)
 @
-Now to fit the 1d fused lasso, we simply call the \code{fusedlasso1d} function 
+Now to fit the 1d fused lasso, we simply call the \code{fusedlasso1d} function
 (and we pass no $X$ matrix, with indicates that $X=I$):
 <<eq2b, include=FALSE>>=
 out = fusedlasso1d(y)
@@ -299,12 +299,12 @@ out = fusedlasso1d(y)
 An alternative method would be to call the \code{genlasso} function with argument
 \code{D=getD1d(n)}, where \code{getD1d} is a convenience function to construct
 the first difference matrix in \eqref{eq:d1d}. However, this is much less efficient
-and less numerically stable, and it is highly recommended to use the speciality 
-implementations \code{fusedlasso} (wrappers \code{fusedlasso1d} and 
-\code{fusedlasso2d}) and \code{trendfilter} whenever possible. 
+and less numerically stable, and it is highly recommended to use the speciality
+implementations \code{fusedlasso} (wrappers \code{fusedlasso1d} and
+\code{fusedlasso2d}) and \code{trendfilter} whenever possible.
 
-The model output works essentially the same as that produced by the \code{genlasso} 
-function discussed in Section \ref{sec:lasso}, giving printing, summaries, and 
+The model output works essentially the same as that produced by the \code{genlasso}
+function discussed in Section \ref{sec:lasso}, giving printing, summaries, and
 coefficients in the exactly the same way. Additionally, a new plot
 function is available to show how the piecewise constant model fits the data
 at specified values of $\lambda$:
@@ -319,9 +319,9 @@ plot(out, lambda=1)
 @
 \end{center}
 % PLOT END
-The estimate at $\lambda=1$ fits the data fairly well, and also provides 
-a good estimate of the change point locations. To retrieve coordinate plots as in 
-Section \ref{sec:lasso}, use the \code{plot} function with argument \code{style="path"}. 
+The estimate at $\lambda=1$ fits the data fairly well, and also provides
+a good estimate of the change point locations. To retrieve coordinate plots as in
+Section \ref{sec:lasso}, use the \code{plot} function with argument \code{style="path"}.
 
 \subsection{The 2d fused lasso and arbitrary graphs}
 
@@ -333,15 +333,15 @@ difference between the coefficients between neighboring nodes is penalized:
 \lambda \sum_{(i,j)\in E} |\beta_i-\beta_j|,
 \end{equation}
 where $E$ is the edge set of the graph. Note that this is still a generalized lasso
-problem \eqref{eq:genlasso}, with the penalty matrix $D$ still a difference matrix 
-between the appropriate pairs of coefficients. 
-In the graph framework, underlying the 1d fused lasso is the chain graph, or 1d grid. 
+problem \eqref{eq:genlasso}, with the penalty matrix $D$ still a difference matrix
+between the appropriate pairs of coefficients.
+In the graph framework, underlying the 1d fused lasso is the chain graph, or 1d grid.
 Another common structure is the 2d grid, and with this underlying graph problem
 \eqref{eq:fused} is called the 2d fused lasso, a technique used for image denoising.
 
-We generate data in the form of a 16 by 16 grid of points; the mean of the data is 
+We generate data in the form of a 16 by 16 grid of points; the mean of the data is
 equal to $2$ for points within a distance of $4$ from the middle of the grid, and $1$ for
-all other points. 
+all other points.
 <<eq8a, echo=true>>=
 set.seed(1)
 y = matrix(runif(256), 16, 16)
@@ -353,12 +353,12 @@ To compute the solution path of this problem, we call the \code{fusedlasso2d} fu
 out = fusedlasso2d(y)
 @
 Since the input data \code{y} is a matrix, the function knows the dimensions of the 2d grid.
-Otherwise we could specify the dimensions as inputs to the function call, \code{dim1} and 
+Otherwise we could specify the dimensions as inputs to the function call, \code{dim1} and
 \code{dim2}. We can extract 5 solutions along the solution path (evenly spaced on the log
 scale):
 <<eq8x, echo=TRUE>>=
 co = coef(out, nlam=5)
-@ 
+@
 and plotting them, along with the original data $y$ (in the top-left corner),
 gives a rough understanding of what the solution path looks like:
 <<eq8c, echo=false, include=false, height=4.5, width=6>>=
@@ -380,48 +380,48 @@ for (i in 1:5) {
 @
 \end{center}
 % PLOT END
-We can see that the algorithm does a pretty good job of finding the region with a 
-different mean, particularly for the 2nd largest value of $\lambda$ displayed in the 
+We can see that the algorithm does a pretty good job of finding the region with a
+different mean, particularly for the 2nd largest value of $\lambda$ displayed in the
 plot. With more regularization, the entire image is assigned a constant coefficient;
-with less, the coefficients are overly noisy. 
+with less, the coefficients are overly noisy.
 
 Finally,
 it is possible to specify a generic underlying graph for the fused lasso problem.
-The function \code{fusedlasso} (for which both \code{fusedlasso1d} and 
+The function \code{fusedlasso} (for which both \code{fusedlasso1d} and
 \code{fusedlasso2d} simply act as wrappers) takes either a generic difference matrix
-$D$---i.e., a matrix such that each row contains a single $-1$ and $1$ and all $0$s 
-otherwise---or an \code{igraph} graph object from the \pkg{igraph} package \citep{igraph}. 
+$D$---i.e., a matrix such that each row contains a single $-1$ and $1$ and all $0$s
+otherwise---or an \code{igraph} graph object from the \pkg{igraph} package \citep{igraph}.
 The function \code{fusedlasso} (as well as \code{fusedlasso1d} and \code{fusedlasso2d})
 also takes an optional argument \code{X} in the case that a non-identity predictor matrix
-$X$ should be included. As with the \code{genlasso}, the predictor matrix $X$ 
+$X$ should be included. As with the \code{genlasso}, the predictor matrix $X$
 should have full column rank; however, this is not check here, for efficiency.
 
 \subsection{Sparse fused lasso and soft-thresholding}
 
-A common variant of the fused lasso is employs an additional $\ell_1$ penalty on
-the coefficients themselves; e.g., the signal approximator fused lasso problem 
+A common variant of the fused lasso employs an additional $\ell_1$ penalty on
+the coefficients themselves; e.g., the signal approximator fused lasso problem
 in \eqref{eq:fused} can be extended as in
 \begin{equation}
 \label{eq:fusedl1}
 \hbeta = \argmin_{\beta \in \R^n} \, \half \sum_{i=1}^n (y_i-\beta_i)^2 +
-\lambda \sum_{(i,j)\in E} |\beta_i-\beta_j| + \gamma \cdot \lambda \sum_{i=1}^n |\beta_i|. 
+\lambda \sum_{(i,j)\in E} |\beta_i-\beta_j| + \gamma \cdot \lambda \sum_{i=1}^n |\beta_i|.
 \end{equation}
 Here $\gamma \geq 0$ is another parameter that controls the ratio between the fusion
 and sparsity penalty terms. Note that \eqref{eq:fusedl1} also fits into the generalized
-lasso framework, as it simply concatenates (a multiple of) the identity matrix to the rows 
-of a fused lasso penalty matrix. For a single fixed value of $\gamma$, the solution path of 
+lasso framework, as it simply concatenates (a multiple of) the identity matrix to the rows
+of a fused lasso penalty matrix. For a single fixed value of $\gamma$, the solution path of
 the sparse fused lasso problem \eqref{eq:fusedl1} can be computed using by setting the
-\code{gamma} argument in \code{fusedlasso} (or \code{fusedlasso1d}, \code{fusedlasso2d}). 
+\code{gamma} argument in \code{fusedlasso} (or \code{fusedlasso1d}, \code{fusedlasso2d}).
 (Additionally including a non-identity predictor matrix poses no problems, and is done by
 setting the \code{X} argument, as before.)
 
 When $X=I$, a particularly simple relationship exists between the solutions of
 the problem \eqref{eq:fused} and its sparse variant \eqref{eq:fusedl1}: at any $\lambda$,
-the solution of \eqref{eq:fusedl1} is simply given by soft-thresholding the solution of 
+the solution of \eqref{eq:fusedl1} is simply given by soft-thresholding the solution of
 \eqref{eq:fused} by an amount $\gamma\cdot\lambda$, as shown in \cite{pco}. If the solution
 path of \eqref{eq:fusedl1} is desired at several levels of $\gamma$ (or even at a single
-nonzero level, actually) it is more efficient to solve the problem with $\gamma=0$ and 
-then soft-threshold to yield the solutions. 
+nonzero level, actually) it is more efficient to solve the problem with $\gamma=0$ and
+then soft-threshold to yield the solutions.
 
 We demonstrate this by revisiting the 1d fused lasso example of Section \ref{sec:fused1d}:
 <<eq6a, echo=true>>=
@@ -429,10 +429,10 @@ set.seed(1)
 n = 100
 i = 1:n
 y = (i > 20 & i < 30) + 5*(i > 50 & i < 70) +
-  rnorm(n, sd=0.1) 
+  rnorm(n, sd=0.1)
 out = fusedlasso1d(y)
 beta1 = coef(out, lambda=1.5)$beta
-@ 
+@
 To compute the solution at $\lambda=1.5$ and $\gamma=1$, we could call \code{fusedlasso1d}
 with \code{gamma=1}, or simply soft-threshold:
 <<eq6b, echo=true>>=
@@ -463,7 +463,7 @@ legend("topleft",lty=1,col=c("black","red"),
 \subsection{Beyond piecewise constant fits}
 
 Like the 1d fused lasso, trend filtering in the signal approximator case $X=I$ assumes
-that the data $y=(y_1,\ldots y_n) \in \R^n$ is meaningfully ordered from $1$ to $n$, 
+that the data $y=(y_1,\ldots y_n) \in \R^n$ is meaningfully ordered from $1$ to $n$,
 and fits a piecewise polynomial of a specified degree. For example, linear trend filtering
 (with $X=I$) solves the following minimization problem:
 \begin{equation}
@@ -473,7 +473,7 @@ and fits a piecewise polynomial of a specified degree. For example, linear trend
 \end{equation}
 Notice that here the discrete second deriative is penalized, as opposed to the discrete
 first derivative in the 1d fused lasso criterion \eqref{eq:fused1d}. Quadratic and cubic
-trend filtering are defined similarly, by penalizing the discrete third and fourth 
+trend filtering are defined similarly, by penalizing the discrete third and fourth
 derivative, respectively. (In this light, we can think of the 1d fused lasso as constant
 or zeroth order trend filtering.)
 
@@ -483,9 +483,9 @@ set.seed(1)
 n = 100
 y = 50 - abs(1:n-n/2) + rnorm(n, sd=5)
 @
-We use the function \code{trendfilter} to fit trend filtering model of order $1$ 
-(i.e., linear). It has the same plotting functionality as the \code{fusedlasso1d} 
-function: 
+We use the function \code{trendfilter} to fit trend filtering model of order $1$
+(i.e., linear). It has the same plotting functionality as the \code{fusedlasso1d}
+function:
 <<eq3b, include=FALSE>>=
 out = trendfilter(y, ord=1)
 plot(out, lambda=n)
@@ -528,7 +528,7 @@ plot(out, lambda=n)
 %% \end{figure}
 
 Note that trend filtering fits can also be produced by using the \code{genlasso}
-with \code{D=getDtf(n,k)}, where \code{getDtf} is a convenience function to 
+with \code{D=getDtf(n,k)}, where \code{getDtf} is a convenience function to
 construct a trend filtering penalty matrix of a specified order (\code{k=1} being
 linear). However, this is not recommended because the specialized implementation
 \code{trendfilter} is significantly more efficient and stable. Trend filtering can
@@ -536,8 +536,8 @@ also be fit with a non-identity predictor; simply use the \code{X} argument.
 
 \subsection{Cross-validation}
 
-For automatic choice of $\lambda$ in trend filtering problems there is an easy to use, 
-pre-built cross-validation function. Here, we again generate some data which that has a 
+For automatic choice of $\lambda$ in trend filtering problems there is an easy to use,
+pre-built cross-validation function. Here, we again generate some data which that has a
 piecewise constant mean, and fit a piecewise constant model:
 <<eq5a, echo=true>>=
 set.seed(1)
@@ -565,17 +565,17 @@ plot(out, lambda=cv$lambda.min, main="Minimal CV error")
 @
 \end{center}
 % PLOT END
-Note that there is a considerable amount of noise here and this does not provide a good 
-estimate of the change points. Using the value of $\lambda$ chosen by the one standard 
-error rule produces a more regularized estimate: 
+Note that there is a considerable amount of noise here and this does not provide a good
+estimate of the change points. Using the value of $\lambda$ chosen by the one standard
+error rule produces a more regularized estimate:
 <<eq5d, echo=TRUE>>=
 plot(out, lambda=cv$lambda.1se, main="One standard error rule")
 @
 \begin{center}
 \setkeys{Gin}{width=4in}
 <<label=fig5d,fig=TRUE,echo=FALSE>>=
-<<eq5d>>  
-@ 
+<<eq5d>>
+@
 \end{center}
 This gives a cleaner estimate of the change points.
 
@@ -583,14 +583,14 @@ This gives a cleaner estimate of the change points.
 
 %% We give here a brief overview of the package's computational accuracy and speed. This is by no means
 %% exhaustive, with a more thorough analysis of the algorithm's computational complexity and scaling
-%% being compiled for use in another document. 
+%% being compiled for use in another document.
 
 %% In terms of accuracy, we compared the output of the path solution at various tuning parameters along the
 %% path, with the pointwise solution for the box constrained quadratic program as given by the commercial solver
 %% \code{lssol} \citep{gill1986user}. Table \ref{acc} gives the maximum squared $\ell_2$-norm difference between
 %% the predicted $\widehat{\beta}$ between two solvers, as well as the worse (for the \code{genlasso} function)
 %% ratio between the critical values in the dual problem. We see that the worst solution occurs for a cubic fit, where
-%% the generalized lasso has a critical value which is only $0.2$ percent larger than that of the \code{lssol} solver. 
+%% the generalized lasso has a critical value which is only $0.2$ percent larger than that of the \code{lssol} solver.
 %% For the tall and dense matrix, there is a fairly large difference between the predicted $\widehat{\beta}$ of
 %% $2^{-1.42}$ and similarly for the two-dimensional fused lasso, $2^{0.684}$;
 %% however, it is the generalized lasso which has a lower critical value in both cases so therefore this discrepancy
@@ -603,8 +603,8 @@ This gives a cleaner estimate of the change points.
 %% Dense wide ($n = 400, m = 200$) & -88.5 & 1.11e-16 \\
 %% Dense tall ($n = 200, m = 400$) & -1.42 & 3.44e-15 \\
 %% Sparse wide ($n = 400, m = 200$) & -88.7 & 3.00e-15 \\
-%% Trend filter ($n = 400, k = 0$) & -88.2 & 2.62e-14\\ 
-%% Trend filter ($n = 400, k = 3$) & -33.9 & 2.80e-3 \\ 
+%% Trend filter ($n = 400, k = 0$) & -88.2 & 2.62e-14\\
+%% Trend filter ($n = 400, k = 3$) & -33.9 & 2.80e-3 \\
 %% 2d Fused ($n=m=30$) & 0.684 & 1.89e-15 \\
 %% \hline
 %% \end{tabular}
@@ -639,73 +639,73 @@ This gives a cleaner estimate of the change points.
 %% \hfill\par
 %% \smallskip
 %% \smallskip
-%% Given $y \in \R^n$ and $D \in \R^{m\times n}$. 
+%% Given $y \in \R^n$ and $D \in \R^{m\times n}$.
 %% \begin{enumerate}
 %% \item Compute the minimal $\ell_2$ norm minimizer of $\|y-D\T u\|^2$,
 %% call this $\hu$.
-%% \item As $\lambda$ decreases (from $\infty$), determine the value of 
-%% $\lambda$ at which a coordinate of the solution $\hu$ will hit the boundary 
-%% of the constraint region (the box $[-\lambda,\lambda]^m$). 
+%% \item As $\lambda$ decreases (from $\infty$), determine the value of
+%% $\lambda$ at which a coordinate of the solution $\hu$ will hit the boundary
+%% of the constraint region (the box $[-\lambda,\lambda]^m$).
 %% Denote this by $\lambda_1$, and the hitting coordinate by $i$. Let
 %% $\cB=\{i\}$, $s=\sign(\hu_i)$, and $k=1$.
 %% \item While $\lambda_k>0$:
 %% \begin{enumerate}
-%% \item Compute the minimal $\ell_2$ norm minimizers of 
+%% \item Compute the minimal $\ell_2$ norm minimizers of
 %% \begin{equation*}
 %% \|y-D_{-\cB}\T \alpha\|^2 \;\;\;\text{and}\;\;\;
 %% \|D_\cB\T s - D_{-\cB}\T \gamma\|^2,
 %% \end{equation*}
 %% call these $\hat{\alpha}$ and $\hat{\gamma}$, respectively.
 %% \item As $\lambda$ decreases (from $\lambda_k$), set $\hu_{-\cB}=\hat{\alpha}-
-%% \lambda\hat{\gamma}$ and $\hu_\cB=\lambda s$. Determine the first value of $\lambda$ 
+%% \lambda\hat{\gamma}$ and $\hu_\cB=\lambda s$. Determine the first value of $\lambda$
 %% at which either: (i) a coordinate of the solution will hit the boundary,
-%% or (ii) a coordinate of the solution must leave the boundary. Call this 
+%% or (ii) a coordinate of the solution must leave the boundary. Call this
 %% $\lambda_k$, and update $\cB,s$ appropriately:
-%% in the first case, add the hitting coordinate to $\cB$ and its sign to $s$, 
-%% else remove the leaving coordinate from $\cB$ and its sign from $s$. Increment 
+%% in the first case, add the hitting coordinate to $\cB$ and its sign to $s$,
+%% else remove the leaving coordinate from $\cB$ and its sign from $s$. Increment
 %% $k$.
 %% \end{enumerate}
 %% \end{enumerate}
 %% \end{algorithm}
 
 %% The main computational effort lies in Steps 1 and 3(a). To summarize: starting
-%% with $\cB=\emptyset$, we repeatedly minimize least squares problems of the form 
-%% $\|c-D_{-\cB}\T x\|^2$ in $x$---which is the same as solving $D_{-\cB}D_{-\cB}\T 
-%% x = D_{-\cB} c$---as elements are added to or deleted from $\cB$, that is, 
+%% with $\cB=\emptyset$, we repeatedly minimize least squares problems of the form
+%% $\|c-D_{-\cB}\T x\|^2$ in $x$---which is the same as solving $D_{-\cB}D_{-\cB}\T
+%% x = D_{-\cB} c$---as elements are added to or deleted from $\cB$, that is,
 %% $D_{-\cB}$ either decreases by one row or increases by one row.
-%% A caveat is that we always require the minimal $\ell_2$ norm 
-%% solution (this distinction is really only important when the solution is not 
+%% A caveat is that we always require the minimal $\ell_2$ norm
+%% solution (this distinction is really only important when the solution is not
 %% unique). From a computational point of view, Steps 2 and 3(b) are straightforward,
 %% since they utilize the results of Steps 1 or 3(a) in a simple way.
 
 %% A naive implementation would simply solve each of these least squares problem
-%% independently, as we move from one iteration to the next. Each iteration would then 
-%% require $O(|\cB|^2 n)$ operations if $|\cB|\leq n$, or $O(|\cB|n^2)$ operations if 
-%% $|\cB|>n$. Alternatively, we could compute a QR decomposition of $D$ or $D\T$ 
+%% independently, as we move from one iteration to the next. Each iteration would then
+%% require $O(|\cB|^2 n)$ operations if $|\cB|\leq n$, or $O(|\cB|n^2)$ operations if
+%% $|\cB|>n$. Alternatively, we could compute a QR decomposition of $D$ or $D\T$
 %% to solve the initial least squares problem (depending on the dimensions of $D$),
 %% and then update this decomposition as rows are removed from or added to $D_{-\cB}$
 %% in order to solve the subsequent problems. With this strategy, each
-%% iteration requires $O(\max\{|\cB|^2,n^2\})$ or $O(|\cB|n)$ operations 
-%% (depending on whether we are updating a 
-%% QR decomposition of $D$ or $D\T$). This improves upon the cost of the naive 
-%% strategy by essentially an order of magnitude. 
+%% iteration requires $O(\max\{|\cB|^2,n^2\})$ or $O(|\cB|n)$ operations
+%% (depending on whether we are updating a
+%% QR decomposition of $D$ or $D\T$). This improves upon the cost of the naive
+%% strategy by essentially an order of magnitude.
 
-%% The QR-based strategy assumes nothing about the penalty matrix $D$. 
+%% The QR-based strategy assumes nothing about the penalty matrix $D$.
 %% For certain problems, we can use more specialized implementations
 %% that take advantage of the structure of $D$. We present
 %% two such specialized implementations, for trend filtering problems in, and for fused lasso
-%% problems. 
+%% problems.
 %% In the former case, each iteration of the specialized implementation
 %% requires $O(|\cB|)$ operations. In the latter case,
-%% the specialized implementation does not admit a tight bound on the cost of 
+%% the specialized implementation does not admit a tight bound on the cost of
 %% each iteration [a very loose upper bound is $O(n^3)$], but tends to work
 %% efficiently in practice. It is important to
-%% remind the reader that, in the presence of a (full column-rank) design 
+%% remind the reader that, in the presence of a (full column-rank) design
 %% matrix $X$ in Equation \ref{primal}, the dual path algorithm
-%% operates on the penalty matrix $DX^+$ (in place of $D$). 
+%% operates on the penalty matrix $DX^+$ (in place of $D$).
 %% Generally speaking, multiplication by $X^+$ does not preserve structure of
-%% $D$, and therefore the implementation in for arbitrary penalty matrices must be used. 
+%% $D$, and therefore the implementation in for arbitrary penalty matrices must be used.
 
-\bibliography{bibfile}  
+\bibliography{bibfile}
 
 \end{document}
