@@ -5,5 +5,5 @@ getDtfPosSparse <- function(n,ord,pos) {
     wts = c(i/(pos[(i+1):n]-pos[1:(n-i)]),rep(1,i))
     D = D0 %*% (wts * D)
   }
-  return(D[1:(n-ord-1),])
+  return(D[1:(n-ord-1),,drop=FALSE])
 }
