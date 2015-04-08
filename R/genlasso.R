@@ -1,7 +1,7 @@
 # We compute the solution path of the generalized lasso problem:
 #
 # \hat{\beta}(\lambda) =
-# \argmin_\beta \|y - X \beta|_2^2 + \lambda\|D \beta\|_1,
+# \argmin_\beta 1/2 \|y - X \beta|_2^2 + \lambda\|D \beta\|_1,
 #
 # where X is n x p and D is m x p. The penalty matrix D can
 # be arbitrary, the predictor matrix X should have rank(X)=p;

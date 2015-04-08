@@ -1,7 +1,7 @@
 # We compute the solution path of the trend filtering problem:
 #
 # \hat{\beta}(\lambda) =
-# \argmin_\beta \|y - X \beta|_2^2 + \lambda\|D \beta\|_1,
+# \argmin_\beta 1/2 \|y - X \beta|_2^2 + \lambda\|D \beta\|_1,
 #
 # where D is (p-1) x p is the discrete difference operator (of
 # order 1), and X is n x p with full column rank. The solution is

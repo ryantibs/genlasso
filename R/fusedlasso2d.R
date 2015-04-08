@@ -1,7 +1,7 @@
 # We compute the solution path of the fused lasso problem:
 #
 # \hat{\beta}(\lambda) =
-# \argmin_\beta \|y - X \beta|_2^2 + \lambda\|D \beta\|_1,
+# \argmin_\beta 1/2 \|y - X \beta|_2^2 + \lambda\|D \beta\|_1,
 #
 # where D is the incidence matrix of a 2d grid and X is a full
 # column rank predictor matrix. The solution is piecewise constant
