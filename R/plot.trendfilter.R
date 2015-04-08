@@ -21,7 +21,6 @@ plot.trendfilter <- function(x, style=c("trend", "path"), lambda,
     co = coef.genlasso(x,lambda,nlam,df)
     if (length(co$lambda)==0) stop("Nothing to plot.")
 
-    xvals = 1:nrow(co$beta)
     if (!is.null(x$pos)) xvals = x$pos
     else xvals = 1:nrow(co$beta)
     
