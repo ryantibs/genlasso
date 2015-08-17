@@ -85,6 +85,10 @@ genlasso <- function(y, X, D, approx=FALSE, maxsteps=2000, minlam=0,
     out$y = y
     out$bls = Xi %*% y2
     out$X = X
+
+    # Fix df
+    if (ridge) out$df = out$df - n
+    else out$df = out$df - (n-p)
   }
 
   out$call = match.call()
