@@ -9,7 +9,7 @@ updateT <- function(y,D1,D2,Q1,Q2,R,q,row) {
   # The full D
   D = rbind(D1,D2)
   m1 = nrow(D)
-  
+
   # The full Q, the new Q
   Q = cbind(Q1,Q2)
   Q = rbind(cbind(rep(0,m2),Q),c(1,rep(0,m2)))
@@ -22,7 +22,7 @@ updateT <- function(y,D1,D2,Q1,Q2,R,q,row) {
     n=as.integer(n),
     q=as.integer(q),
     dup=FALSE,
-    package="genlasso")
+    PACKAGE="genlasso")
 
   y = a$y
   D = matrix(a$D,nrow=m1)
@@ -34,6 +34,6 @@ updateT <- function(y,D1,D2,Q1,Q2,R,q,row) {
   Q1 = Q[,Seq(1,r),drop=FALSE]
   Q2 = Q[,Seq(r+1,m2+1),drop=FALSE]
   R = rbind(a$row,R)[Seq(1,r),,drop=FALSE]
-  
+
   return(list(y=y,D1=D1,D2=D2,Q1=Q1,Q2=Q2,R=R))
 }

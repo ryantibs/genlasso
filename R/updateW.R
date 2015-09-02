@@ -5,14 +5,14 @@ updateW <- function(Q1,Q2,R,col) {
   m = nrow(Q1)
   n = ncol(Q1)
   k = ncol(Q2)
-  
+
   a = .C("update1",
     Q2=as.double(Q2),
     w=as.double(t(Q2)%*%col),
     m=as.integer(m),
     k=as.integer(k),
     dup=FALSE,
-    package="genlasso")
+    PACKAGE="genlasso")
 
   Q2 = matrix(a$Q2,nrow=m)
   w = c(t(Q1)%*%col,a$w)

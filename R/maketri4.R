@@ -31,7 +31,7 @@ maketri4 <- function(y,D1,D2,Q1,Q2,R,q,k) {
     q=as.integer(q),
     k=as.integer(k-1),
     dup=FALSE,
-    package="genlasso")
+    PACKAGE="genlasso")
 
   y = a$y
   D = matrix(a$D,nrow=m1)
@@ -45,6 +45,6 @@ maketri4 <- function(y,D1,D2,Q1,Q2,R,q,k) {
   Q1 = Q[,Seq(1,r),drop=FALSE]
   Q2 = Q[,Seq(r+1,m2),drop=FALSE]
   R = R[Seq(1,r),,drop=FALSE]
-  
+
   return(list(y=y,D1=D1,D2=D2,Q1=Q1,Q2=Q2,R=R))
 }

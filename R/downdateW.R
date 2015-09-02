@@ -5,7 +5,7 @@
 downdateW <- function(Q1,Q2,R,col) {
   m = nrow(Q1)
   n = ncol(Q1)
-  
+
   a = .C("downdate1",
     Q1=as.double(Q1),
     R=as.double(R),
@@ -13,7 +13,7 @@ downdateW <- function(Q1,Q2,R,col) {
     m=as.integer(m),
     n=as.integer(n),
     dup=FALSE,
-    package="genlasso")
+    PACKAGE="genlasso")
 
   Q1 = matrix(a$Q1,nrow=m)
   R = matrix(a$R,nrow=n)
