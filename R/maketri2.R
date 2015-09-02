@@ -15,7 +15,7 @@ maketri2 <- function(y,D,R,k) {
     n=as.integer(n),
     k=as.integer(k),
     dup=FALSE,
-    package="genlasso")
+    PACKAGE="genlasso")
 
   y = a$y
   D = matrix(a$D,nrow=m)
