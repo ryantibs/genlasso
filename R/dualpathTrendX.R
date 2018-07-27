@@ -23,7 +23,7 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
     n = length(y)
 
     # Modify y,X in the case of a ridge penalty, but
-    # keep the originals 
+    # keep the originals
     y0 = y
     X0 = X
     if (eps>0) {
@@ -31,8 +31,8 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
       X = rbind(X,diag(sqrt(eps),p))
       n = n+p
     }
-  
-    # Find the minimum 2-norm solution, using some linear algebra 
+
+    # Find the minimum 2-norm solution, using some linear algebra
     # tricks and a little bit of discrete calculus
     if (is.null(pos)) pos = 1:p
     Pos = matrix(rep(pos,each=ord),ord,p)
@@ -41,9 +41,9 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
     for (i in Seq(2,ord+1)) {
       ii = Seq(1,i-1)
       basis[,i] = apply(pmax(Pos[ii,,drop=FALSE]-pos[ii],0),
-             2,prod)/factorial(i-1) 
+             2,prod)/factorial(i-1)
     }
-    
+
     # First project onto the row space of D*X^+
     xy = t(X)%*%y
     A = X%*%basis
@@ -54,7 +54,7 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
     # e = solve(crossprod(A),z), for numerical stablity. Plus,
     # it's not really any slower
     g = xy-t(X)%*%(A%*%e)
-  
+
    # Here we perform our usual trend filter solve but
     # with g in place of y
     x = qr(t(D))
@@ -68,10 +68,10 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
       cat(sprintf("1. lambda=%.3f, adding coordinate %i, |B|=%i...",
                   hit,ihit,1))
     }
-    
+
     # Now iteratively find the new dual solution, and
     # the next critical point
-  
+
     # Things to keep track of, and return at the end
     buf = min(maxsteps,1000)
     lams = numeric(buf)        # Critical lambdas
@@ -79,7 +79,7 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
     df = numeric(buf)          # Degrees of freedom
     u = matrix(0,m,buf)        # Dual solutions
     beta = matrix(0,p,buf)     # Primal solutions
-    
+
     lams[1] = hit
     h[1] = TRUE
     df[1] = ncol(basis)
@@ -91,7 +91,7 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
       2,prod)/factorial(ord)
     newbv[Seq(1,ihit+ord)] = 0 # Only needed when ord=0
     basis = cbind(basis,newbv)
-  
+
     # Other things to keep track of, but not return
     r = 1                      # Size of boundary set
     B = ihit                   # Boundary set
@@ -124,7 +124,7 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
     # In the case of a ridge penalty, modify X
     if (eps>0) X = rbind(X,diag(sqrt(eps),p))
   }
-  
+
   tryCatch({
     while (k<=maxsteps && lams[k-1]>=minlam) {
       ##########
@@ -142,7 +142,7 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
       # No updating, just recompute these every time
       x = qr(t(D1))
       Ds = as.numeric(t(D2)%*%s)
-      
+
       # Precomputation for the hitting times: first we project
       # y and Ds onto the row space of D1*X^+
       A = X%*%basis
@@ -158,12 +158,12 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
       gb = Ds-t(X)%*%(A%*%eb)
       fa = basis%*%ea
       fb = basis%*%eb
-      
+
       # If the interior is empty, then nothing will hit
       if (r==m) {
         hit = 0
       }
-      
+
       # Otherwise, find the next hitting time
       else {
         # Here we perform our usual trend filter solve but
@@ -177,12 +177,12 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
         # than the current lambda (precision issue)
         hits[hits>lams[k-1]+btol] = 0
         hits[hits>lams[k-1]] = lams[k-1]
-        
+
         ihit = which.max(hits)
         hit = hits[ihit]
         shit = shits[ihit]
       }
-      
+
       ##########
       # If nothing is on the boundary, then nothing will leave
       # Also, skip this if we are in "approx" mode
@@ -228,21 +228,21 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
           2,prod)/factorial(ord)
         newbv[Seq(1,I[ihit]+ord)] = 0 # Only needed when ord=0
         basis = cbind(basis,newbv)
-        
+
         # Update all other variables
         r = r+1
         B = c(B,I[ihit])
         I = I[-ihit]
         s = c(s,shit)
-        D2 = rBind(D2,D1[ihit,])
+        D2 = rbind(D2,D1[ihit,])
         D1 = D1[-ihit,,drop=FALSE]
-          
+
         if (verbose) {
           cat(sprintf("\n%i. lambda=%.3f, adding coordinate %i, |B|=%i...",
                       k,hit,B[r],r))
         }
       }
-                
+
       # Otherwise a leaving time comes next
       else {
         # Record the critical lambda and properties
@@ -253,16 +253,16 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
         uhat[B] = leave*s
         uhat[I] = a-leave*b
         betahat = fa-leave*fb
-        
+
         # Update our basis
         basis = basis[,-(ord+1+ileave)]
-        
+
         # Update all other variables
         r = r-1
         I = c(I,B[ileave])
         B = B[-ileave]
         s = s[-ileave]
-        D1 = rBind(D1,D2[ileave,])
+        D1 = rbind(D1,D2[ileave,])
         D2 = D2[-ileave,,drop=FALSE]
 
         if (verbose) {
@@ -281,14 +281,14 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
     err$message = paste(err$message,"\n(Path computation has been terminated;",
       " partial path is being returned.)",sep="")
     warning(err)})
-  
-  # Trim 
+
+  # Trim
   lams = lams[Seq(1,k-1)]
   h = h[Seq(1,k-1)]
   df = df[Seq(1,k-1)]
   u = u[,Seq(1,k-1),drop=FALSE]
   beta = beta[,Seq(1,k-1),drop=FALSE]
-  
+
   # If we reached the maximum number of steps
   if (k>maxsteps) {
     if (verbose) {
@@ -313,14 +313,14 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
   # The least squares solution (lambda=0)
   bls = NULL
   if (completepath) bls = fa
-  
+
   if (verbose) cat("\n")
   # Save elements needed for continuing the path
   pathobjs = list(type="trend.x", r=r, B=B, I=I, Q1=NA, approx=approx,
     Q2=NA, k=k, df=df, D1=D1, D2=D2, Ds=Ds, ihit=ihit, m=m, n=n, p=p,
     q=q, h=h, q0=NA, rtol=rtol, btol=btol, eps=eps, s=s, y=y, ord=ord,
     pos=pos, Pos=Pos, basis=basis, xy=xy)
-  
+
   colnames(u) = as.character(round(lams,3))
   colnames(beta) = as.character(round(lams,3))
   return(list(lambda=lams,beta=beta,fit=X0%*%beta,u=u,hit=h,df=df,y=y0,X=X0,

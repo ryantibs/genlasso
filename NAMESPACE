@@ -1,5 +1,10 @@
 import("Matrix", "igraph")
 
+importFrom("grDevices", "rainbow")
+importFrom("graphics", "abline", "legend", "lines", "matplot", "par",
+      "plot", "points", "text")
+importFrom("stats", "coef", "rnorm", "sd")
+
 export("coef.genlasso",
        "cv.trendfilter",
        "fusedlasso1d",

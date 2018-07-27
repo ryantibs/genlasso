@@ -338,7 +338,7 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
         B = c(B,I[ihit])
         I = I[-ihit]
         s = c(s,shit)
-        D2 = rBind(D2,D1[ihit,])
+        D2 = rbind(D2,D1[ihit,])
         D1 = D1[-ihit,,drop=FALSE]
 
         if (verbose) {
@@ -384,7 +384,7 @@ dualpathFusedL1X <- function(y, X, D, D0, gamma, approx=FALSE, maxsteps=2000,
         I = c(I,B[ileave])
         B = B[-ileave]
         s = s[-ileave]
-        D1 = rBind(D1,D2[ileave,])
+        D1 = rbind(D1,D2[ileave,])
         D2 = D2[-ileave,,drop=FALSE]
 
         if (verbose) {

@@ -84,7 +84,7 @@ fusedlasso <- function(y, X, D, graph, gamma=0, approx=FALSE,
   else {
     # Construct the proper D matrix
     D0 = D
-    D = rBind(D0,bandSparse(ncol(D0),k=0,diagonals=list(rep(gamma,ncol(D0)))))
+    D = rbind(D0,bandSparse(ncol(D0),k=0,diagonals=list(rep(gamma,ncol(D0)))))
 
     if (is.null(X)) out = dualpathFusedL1(y,D,D0,gamma,approx,maxsteps,minlam,rtol,btol,verbose)
     else out = dualpathFusedL1X(y,X,D,D0,gamma,approx,maxsteps,minlam,rtol,btol,eps,verbose)
