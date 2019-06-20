@@ -186,7 +186,7 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
         a = as.numeric(D1%*%xa)
         b = as.numeric(D1%*%xb)
         shits = Sign(a)
-        hits = a/(b+shits);
+        hits = a/(b+shits)
 
         # Make sure none of the hitting times are larger
         # than the current lambda (precision issue)

@@ -103,7 +103,7 @@ dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
         df = c(df,numeric(buf))
         u = cbind(u,matrix(0,m,buf))
       }
-
+      
       ##########
       # If we just added an element to B, downdate the
       # QR factorization
@@ -233,13 +233,13 @@ dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
         z = Backsolve(R,Ds,q)
         b = Q1%*%z
         shits = Sign(a)
-        hits = a/(b+shits);
+        hits = a/(b+shits)
 
         # Make sure none of the hitting times are larger
         # than the current lambda (precision issue)
         hits[hits>lams[k-1]+btol] = 0
         hits[hits>lams[k-1]] = lams[k-1]
-        
+
         ihit = which.max(hits)
         hit = hits[ihit]
         shit = shits[ihit]
@@ -254,21 +254,32 @@ dualpathTall <- function(y, D, Q1, Q2, R, q0, approx=FALSE, maxsteps=2000,
       
       # Otherwise, find the next leaving time
       else {
-        # Note: c and d involve projecting a vector onto the null
-        # space of D_{-B}. We can run into trouble when a vector
-        # is orthogonal to this null space, so these should be zero,
-        # but due to numerical inaccuracy it's simply very close to
-        # zero. dualpathWide doesn't suffer from this problem, because
-        # in its case D_{-B} is always full row rank so the null space
-        # is trivial. And dualpathFused doesn't suffer from this problem
-        # because we can do the projection explicitly, i.e. by averaging 
-        # over the connected components of the underlying graph. 
-        c = s*(D2%*%(y-t(D1)%*%a))
-        d = s*(D2%*%(Ds-t(D1)%*%b))
-        leaves = c/d
+        # Note: c and d involve projecting a vector onto the null space
+        # of D_{-B}. We can run into trouble when this null space is
+        # trivial, because the projections should be exactly zero, but
+        # then due to numerical inaccuracy, it's simply very close to
+        # zero. dualpathWide doesn't suffer from this problem because
+        # D_{-B} always has a nontrivial null space, and neither does
+        # dualpathFused because it computes the projections via direct
+        # means, i.e., by averaging over the connected components of the
+        # underlying graph ...
+        # Thus a recent fix (08.20.2019) is to simply set c and d to be
+        # exactly zero when we detect the null space to be trivial (just
+        # inspect the dimensions in the computed QR decomposition)
         
-        # c must be negative 
-        leaves[c>=0] = 0
+        # If R is square, then set c and d to zero
+        if (nrow(R)>=n-q) {
+          c = d = leaves = rep(0,r)
+        }
+        # Otherwise, go ahead and compute them  
+        else {
+          c = s*(D2%*%(y-t(D1)%*%a))
+          d = s*(D2%*%(Ds-t(D1)%*%b))
+          leaves = c/d
+        
+          # c must be negative 
+          leaves[c>=0] = 0
+        }
         
         # Make sure none of the leaving times are larger
         # than the current lambda (precision issue)

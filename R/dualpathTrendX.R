@@ -171,7 +171,7 @@ dualpathTrendX <- function(y, pos, X, D, ord, approx=FALSE, maxsteps=2000,
         a = backsolveSparse(x,ga)
         b = backsolveSparse(x,gb)
         shits = Sign(a)
-        hits = a/(b+shits);
+        hits = a/(b+shits)
 
         # Make sure none of the hitting times are larger
         # than the current lambda (precision issue)

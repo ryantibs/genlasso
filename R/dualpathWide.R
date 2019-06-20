@@ -139,7 +139,7 @@ dualpathWide <- function(y, D, Q1, Q2, R, approx=FALSE, maxsteps=2000,
         a = backsolve(R,t(Q1)%*%y) 
         b = backsolve(R,t(Q1)%*%Ds)
         shits = Sign(a)
-        hits = a/(b+shits);
+        hits = a/(b+shits)
 
         # Make sure none of the hitting times are larger
         # than the current lambda (precision issue)

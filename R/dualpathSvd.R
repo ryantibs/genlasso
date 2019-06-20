@@ -98,7 +98,7 @@ dualpathSvd <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
         b = as.numeric(sv$x[,2])
         q = sv$q
         shits = Sign(a)
-        hits = a/(b+shits);
+        hits = a/(b+shits)
 
         # Make sure none of the hitting times are larger
         # than the current lambda (precision issue)
