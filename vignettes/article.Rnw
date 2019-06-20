@@ -186,7 +186,7 @@ trend filtering problems, and using cross-validation.
 We discuss the details of the various implementation strategies used in
 this package, as well as provide empirical results on computationally accuracy and run times
 of the various strategies to help assist users in deciding what problems can and cannot be
-reasonably solved with the path algorithm, in a seperate paper \cite{arnold2014efficient}.
+reasonably solved with the path algorithm, in a seperate paper \cite{arnold2016efficient}.
 
 \section{The standard lasso}
 \label{sec:lasso}
