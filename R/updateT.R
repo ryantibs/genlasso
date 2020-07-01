@@ -14,14 +14,13 @@ updateT <- function(y,D1,D2,Q1,Q2,R,q,row) {
   Q = cbind(Q1,Q2)
   Q = rbind(cbind(rep(0,m2),Q),c(1,rep(0,m2)))
 
-  a = .C("update2",
+  a = .C(C_update2,
     y=as.double(y),
     D=as.double(D),
     row=as.double(row),
     m=as.integer(m1),
     n=as.integer(n),
     q=as.integer(q),
-    dup=FALSE,
     PACKAGE="genlasso")
 
   y = a$y

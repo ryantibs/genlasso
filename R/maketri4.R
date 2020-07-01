@@ -20,7 +20,7 @@ maketri4 <- function(y,D1,D2,Q1,Q2,R,q,k) {
   # The full R
   if (m2>n) R = rbind(R,matrix(0,m2-n,n))
 
-  a = .C("maketri4",
+  a = .C(C_maketri4,
     y=as.double(y),
     D=as.double(D),
     Q=as.double(Q),
@@ -30,7 +30,6 @@ maketri4 <- function(y,D1,D2,Q1,Q2,R,q,k) {
     n=as.integer(n),
     q=as.integer(q),
     k=as.integer(k-1),
-    dup=FALSE,
     PACKAGE="genlasso")
 
   y = a$y

@@ -42,4 +42,4 @@ S3method("print", "genlasso")
 S3method("print", "summary.genlasso")
 S3method("summary", "genlasso")
 
-useDynLib("genlasso")
+useDynLib("genlasso", .registration = TRUE)

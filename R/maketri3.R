@@ -11,7 +11,7 @@ maketri3 <- function(y,D1,D2,R,q) {
   D = rbind(D1,D2)
   m1 = nrow(D)
 
-  a = .C("maketri3",
+  a = .C(C_maketri3,
     y=as.double(y),
     D=as.double(D),
     R=as.double(R),
@@ -19,7 +19,6 @@ maketri3 <- function(y,D1,D2,R,q) {
     m2=as.integer(m2),
     n=as.integer(n),
     q=as.integer(q),
-    dup=FALSE,
     PACKAGE="genlasso")
 
   y = a$y

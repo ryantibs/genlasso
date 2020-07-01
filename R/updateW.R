@@ -6,12 +6,11 @@ updateW <- function(Q1,Q2,R,col) {
   n = ncol(Q1)
   k = ncol(Q2)
 
-  a = .C("update1",
+  a = .C(C_update1,
     Q2=as.double(Q2),
     w=as.double(t(Q2)%*%col),
     m=as.integer(m),
     k=as.integer(k),
-    dup=FALSE,
     PACKAGE="genlasso")
 
   Q2 = matrix(a$Q2,nrow=m)

@@ -6,13 +6,12 @@ downdateW <- function(Q1,Q2,R,col) {
   m = nrow(Q1)
   n = ncol(Q1)
 
-  a = .C("downdate1",
+  a = .C(C_downdate1,
     Q1=as.double(Q1),
     R=as.double(R),
     col=as.integer(col-1),
     m=as.integer(m),
     n=as.integer(n),
-    dup=FALSE,
     PACKAGE="genlasso")
 
   Q1 = matrix(a$Q1,nrow=m)

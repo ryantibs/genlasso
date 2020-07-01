@@ -15,12 +15,11 @@ downdateT <- function(Q1,Q2,R,row) {
   # The full R
   if (m>n) R = rbind(R,matrix(0,m-n,n))
 
-  a = .C("downdate2",
+  a = .C(C_downdate2,
     Q=as.double(Q),
     R=as.double(R),
     m=as.integer(m),
     n=as.integer(n),
-    dup=FALSE,
     PACKAGE="genlasso")
 
   Q = matrix(a$Q,nrow=m)
