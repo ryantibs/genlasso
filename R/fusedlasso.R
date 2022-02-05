@@ -14,7 +14,8 @@
 # Note: we also do not check that X has full column rank.
 
 fusedlasso <- function(y, X, D, graph, gamma=0, approx=FALSE,
-                       maxsteps=2000, minlam=0, rtol=1e-7, btol=1e-7,
+                       maxsteps=2000, minlam=0, maxdf=length(y),
+                       rtol=1e-7, btol=1e-7,
                        eps=1e-4, verbose=FALSE) {
 
   if (missing(y)) stop("y is missing.")
@@ -78,7 +79,7 @@ fusedlasso <- function(y, X, D, graph, gamma=0, approx=FALSE,
                                               "because X has more columns than rows."),eps))
 
   if (gamma==0) {
-    if (is.null(X)) out = dualpathFused(y,D,approx,maxsteps,minlam,rtol,btol,verbose)
+    if (is.null(X)) out = dualpathFused(y,D,approx,maxsteps,minlam,maxdf,rtol,btol,verbose)
     else out = dualpathFusedX(y,X,D,approx,maxsteps,minlam,rtol,btol,eps,verbose)
   }
   else {

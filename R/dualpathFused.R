@@ -10,7 +10,7 @@
 # the open interval to the *right* of the current lambda_k.
 
 dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
-                          rtol=1e-7, btol=1e-7, verbose=FALSE,
+                          maxdf=length(y), rtol=1e-7, btol=1e-7, verbose=FALSE,
                           object=NULL) {
   # If we are starting a new path
   if (is.null(object)) {
@@ -121,7 +121,7 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
   }
 
   tryCatch({
-    while (k<=maxsteps && lams[k-1]>=minlam) {
+    while (k<=maxsteps && lams[k-1]>=minlam && df[k-1] <= maxdf) {
       ##########
       # Check if we've reached the end of the buffer
       if (k > length(lams)) {
@@ -335,6 +335,15 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
   else if (lams[k-1]<minlam) {
     if (verbose) {
       cat(sprintf("\nReached the minimum lambda (%.3f),",minlam))
+      cat(" skipping the rest of the path.")
+    }
+    completepath = FALSE
+  }
+  
+  # If we reached the maximum degrees of freedom
+  else if (df[k-1]>maxdf) {
+    if (verbose) {
+      cat(sprintf("\nReached the maximum degrees of freedom (%.3f),",maxdf))
       cat(" skipping the rest of the path.")
     }
     completepath = FALSE
