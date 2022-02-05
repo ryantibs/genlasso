@@ -343,7 +343,7 @@ dualpathFused <- function(y, D, approx=FALSE, maxsteps=2000, minlam=0,
   # If we reached the maximum degrees of freedom
   else if (df[k-1]>maxdf) {
     if (verbose) {
-      cat(sprintf("\nReached the maximum degrees of freedom (%.3f),",maxdf))
+      cat(sprintf("\nReached the maximum degrees of freedom (%.i),",maxdf))
       cat(" skipping the rest of the path.")
     }
     completepath = FALSE
