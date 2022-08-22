@@ -6,6 +6,8 @@ plot.genlasso <- function(x, type=c("primal", "dual", "both"),
   }
   
   if (type=="both") {
+    oldpar <- par(no.readonly = TRUE)
+    on.exit(par(oldpar))
     par(mfrow=c(1,2))
   }
 

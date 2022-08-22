@@ -239,7 +239,7 @@ a2 = fusedlasso(y,D=D)
 
 plot(a1,numbers=TRUE)
 
-\dontrun{
+\donttest{
 # The 2d fused lasso with a predictor matrix X
 set.seed(0)
 dim1 = dim2 = 16
@@ -258,7 +258,10 @@ out = fusedlasso2d(y,X,dim1=dim1,dim2=dim2)
 a = coef(out,nlam=8)
 
 # Plot these against the true coefficients
+oldpar <- par(no.readonly = TRUE)
+on.exit(par(oldpar))
 par(mar=c(1,1,2,1),mfrow=c(3,3))
+
 cols = terrain.colors(30)
 zlim = range(c(range(beta0),range(a$beta)))
 image(beta0,col=cols,zlim=zlim,axes=FALSE)

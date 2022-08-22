@@ -156,7 +156,7 @@ plot(cv)
 plot(a,lambda=cv$lambda.min,main="Minimal CV error")
 plot(a,lambda=cv$lambda.1se,main="One standard error rule")
 
-\dontrun{
+\donttest{
 # Cubic trend filtering
 set.seed(0)
 n = 100
