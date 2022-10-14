@@ -2,12 +2,16 @@ Package: genlasso
 Type: Package
 Title: Path Algorithm for Generalized Lasso Problems
 Version: 1.6.1
-Date: 2022-08-19
-Authors@R: c(person(given = "Taylor B.", family = "Arnold", email = "tarnold2@richmond.edu", role = c("aut", "cre")), person(given = "Ryan J.", family = "Tibshirani", email = "ryantibs@berkeley.edu", role = c("aut")))
+Date: 2022-10-14
+Authors@R: c(person(given = "Taylor B.", family = "Arnold", 
+                    email = "tarnold2@richmond.edu", 
+                    role = c("aut", "cre")), 
+             person(given = "Ryan J.", family = "Tibshirani", 
+             email = "ryantibs@berkeley.edu", role = c("aut")))
 Author: Taylor B. Arnold [aut, cre], Ryan J. Tibshirani [aut]
 Maintainer: Taylor B. Arnold <tarnold2@richmond.edu>
 Description: Computes the solution path for generalized lasso problems. Important use cases are the fused lasso over an arbitrary graph, and trend fitting of any given polynomial order. Specialized implementations for the latter two subproblems are given to improve stability and speed. See Taylor Arnold and Ryan Tibshirani (2016) <doi:10.1080/10618600.2015.1008638>.
 License: GPL (>= 2.0)
 Depends: Matrix, igraph, R (>= 3.1.0)
 ByteCompile: TRUE
-URL: https://github.com/glmgen/genlasso
+URL: https://github.com/ryantibs/genlasso
