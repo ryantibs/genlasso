@@ -64,7 +64,7 @@ genlasso(y, X, D, approx = FALSE, maxsteps = 2000, minlam = 0,
     be less than the current knot in the path, but sometimes for numerical
     reasons they are larger; any computed hitting or leaving time larger 
     than the current knot + btol is thrown away. Hence making btol larger
-    means being less stringent withthe determination of hitting and leaving 
+    means being less stringent with the determination of hitting and leaving
     times. Again, in general, do not change this unless you know what you 
     are getting into! Default is 1e-7.
   }
